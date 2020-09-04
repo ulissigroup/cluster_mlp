@@ -32,7 +32,9 @@ toolbox = base.Toolbox()
 # TODO the goal ('fitness') function to be maximized
 def evalEnergy(atoms):
 
-	# ASE relaxation
+	# ASE relaxation with XTB
+
+	# ASE relaxation with DFT
 
 	return -atoms.get_potential_energy() # minus we want to minimize energy
 
