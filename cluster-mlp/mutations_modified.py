@@ -2,11 +2,12 @@ import numpy as np
 import ase
 from ase import Atoms
 import random as ran
-import database as db
-import prepare as pre
-import checkPool as chk
 from ase.constraints import FixAtoms
 from ase.data import atomic_numbers,vdw_radii
+from xtb.ase.calculator import XTB
+from ase.calculators.emt import EMT
+from ase.visualize import view
+from ase.optimize import BFGS
 
 def get_data(cluster):
 		eleNames = list(set(cluster.get_chemical_symbols()))
@@ -29,27 +30,35 @@ def get_data(cluster):
 
 		return eleNames,eleNums,natoms,stride,eleRadii
 
+'''
 def fixOverlap(clus):
-		natoms = len(clus)
-		com = clus.get_center_of_mass()
-		clus.center(about = com)
-		for i in range(natoms):
-		        for j in range(i):
-		            r1 = np.array(clus[j].position)
-		            r2 = np.array(clus[i].position)
-		            rij = r2 - r1
-		            distance = np.sqrt(np.dot(rij, rij))
-		            dmin = vdw_radii[clus[i].number] + vdw_radii[clus[j].number]
-		            if distance < 0.9 * dmin:
-		                a = np.dot(r2, r2)
-		                b = np.dot(r1, r2)
-		                c = np.dot(r1, r1) - dmin**2
-		                alpha = 1.000001 * (b + np.sqrt(b * b - a * c)) / a
-		                clus[i].x *= alpha
-		                clus[i].y *= alpha
-		                clus[i].z *= alpha
-		return clus
+	   natoms = len(clus)
+	   #com = clus.get_center_of_mass()
+	   #clus.center(about = com)
+	   for i in range(natoms):
+		   for j in range(i):
+			   r1 = np.array(clus[j].position)
+			   r2 = np.array(clus[i].position)
+			   rij = r2 - r1
+			   distance = np.sqrt(np.dot(rij, rij))
+			   dmin = vdw_radii[clus[i].number] + vdw_radii[clus[j].number]
+			   if distance < 0.9 * dmin:
+				   a = np.dot(r2, r2)
+				   b = np.dot(r1, r2)
+				   c = np.dot(r1, r1) - dmin**2
+				   alpha = 1.000001 * (b + np.sqrt(b * b - a * c)) / a
+				   clus[i].x *= alpha
+				   clus[i].y *= alpha
+				   clus[i].z *= alpha
+				   #print(distance,dmin)
+	   return clus
+'''
 
+def fixOverlap(clus):
+	clus.set_calculator(XTB(method="GFN2-xTB"))
+	dyn = BFGS(clus,fmax = 0.05,steps = 25,logfile = None)
+	dyn.relax()
+	return clus
 
 def add_atoms(clusm,atcenter):
 		'''
@@ -67,7 +76,7 @@ def add_atoms(clusm,atcenter):
 			eleList.append(ele)
 
 		r = max(rlist) + 0.5
-
+		print(rlist)
 		eleNames,eleNums,natoms,stride,eleRadii = get_data(clusm)
 
 		for i in range(len(eleNames)):
@@ -76,7 +85,6 @@ def add_atoms(clusm,atcenter):
 				for elem in eleList:
 					if ele == elem:
 						n += 1
-
 				while n < eleNums[i]:
 					if atcenter:
 						added_atom = Atoms(ele,positions = [[0.0,0.0,0.0]])
@@ -88,10 +96,13 @@ def add_atoms(clusm,atcenter):
 						y = r*np.sin(a)*np.sin(b)
 						z = r*np.cos(b)
 						added_atom = Atoms(ele,positions = [[x,y,z]])
+						#print(x,y,z)
+						print(added_atom)
 
 					clusm += added_atom
 					n += 1
-
+		print(clusm.positions)
+		view(clusm)
 		clus = fixOverlap(clusm)
 		return clus
 
@@ -125,11 +136,10 @@ def rattle_mut(clus): #DONE
 		indices = ran.sample(range(len(clus)), int(len(clus)/3))
 		const = FixAtoms(indices = indices)
 		clus.set_constraint(const)
-		clus.rattle()
+		clus.rattle(stdev=0.1)
 		del clus.constraints
-
+		view(clus)
 		clus = fixOverlap(clus)
-
 		return clus
 
 
@@ -139,7 +149,8 @@ def twist(clus):
 		'''
 		#ROTATE ALONG X FIXING Y AND Z
 		clus.rotate('y','z',center = 'COP')
-
+		print(clus.positions)
+		view(clus)
 		clus = fixOverlap(clus)
 		return clus
 
@@ -200,3 +211,78 @@ def partialInversion(clus):
 
 		clus = fixOverlap(clus)
 		return clus
+
+def mate(clus1,clus2,fit1,fit2,surfGA = False):
+		"""
+		1. Select a pair of clusters from pool
+		   using roulette-wheel selection.
+		2. If gas-phase, rotate randomly the clusters.
+		3. Weighted cut of the clusters in a plane
+		   perpendicular to the surface.
+		4. Join parts and repare overlaps.
+		"""
+		#ROULETTE WHEEL THROUGH DEAP
+		compositionWrong = True
+		parent1 = clus1.copy()
+		parent2 = clus2.copy()
+		while compositionWrong:
+			if surfGA == False:
+				clus1 = rotate_mut(clus1)
+				clus2 = rotate_mut(clus2)
+
+			child = []
+			eleNames,eleNums,natoms,_,_ = get_data(clus1)
+			cut = int(natoms*(fit1/(fit1+fit2)))
+
+			if cut == 0:
+				cut = 1
+			elif cut == natoms:
+				cut = natoms - 1
+
+			for i in range(cut):
+				child.append(clus1[i])
+
+			for j in range(cut,len(clus2)):
+				child.append(clus2[j])
+
+			CheckEle = []
+			for ele in eleNames:
+				eleCount = 0
+				for atom in child:
+					if atom.symbol == ele:
+						eleCount += 1
+				CheckEle.append(eleCount)
+
+			if CheckEle == eleNums:
+				compositionWrong = False
+
+		final_child = Atoms(child[0].symbol,positions = [child[0].position])
+		for i in range(1,len(child)):
+			c = Atoms(child[i].symbol,positions = [child[i].position])
+			final_child += c
+
+		fixOverlap(final_child)
+		return final_child, parent1,parent2
+
+#TESTING
+'''
+testclus1 = Atoms('Ni3Au2',positions = [[7.11429776,8.18434723,8.39830404],
+						   [5.95722660,7.50727631,6.42107119],
+						   [8.27136892,7.50727631,6.42107119],
+						   [8.27919396,6.16668782,8.39830404],
+						   [5.94940156,6.16668782,8.39830404]], cell = [10.0, 10.0, 10.0],pbc = True)
+testclus2 = Atoms('Ni3Au2',positions = [[6.11429776,4.18434723,8.39830404],
+						   [4.95722660,7.50727631,6.42107119],
+						   [7.27136892,4.50727631,6.42107119],
+						   [9.27919396,6.16668782,6.39830404],
+						   [6.94940156,6.16668782,8.39830404]], cell = [10.0, 10.0, 10.0],pbc = True)
+view(testclus1)
+view(testclus2)
+testclus1.set_calculator(EMT())
+testclus2.set_calculator(EMT())
+a = testclus1.get_potential_energy()
+b = testclus2.get_potential_energy()
+print(a,b)
+new_clus,parent1,parent2 = mate(testclus1,testclus2,a,b,False)
+print(new_clus.positions)
+view(new_clus)'''
