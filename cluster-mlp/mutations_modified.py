@@ -55,7 +55,7 @@ def fixOverlap(clus):
 '''
 
 def fixOverlap(clus):
-	clus.set_calculator(XTB(method="GFN2-xTB"))
+	clus.set_calculator(XTB(method="GFN0-xTB"))
 	dyn = BFGS(clus,fmax = 0.05,steps = 25,logfile = None)
 	dyn.relax()
 	return clus
