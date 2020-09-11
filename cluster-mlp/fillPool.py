@@ -1,8 +1,8 @@
 def fillPool(nPool):
 	'''
 	Fill Inition pool with random geometries
-        ini_pool = []
 	'''
+        ini_pool = []
         nc = 0
         while nc  < nPool:
             ele_initial = [eleNames[0], eleNames[-1]]
