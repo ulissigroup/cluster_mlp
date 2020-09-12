@@ -56,8 +56,8 @@ def fixOverlap(clus):
 
 def fixOverlap(clus):
 	clus.set_calculator(XTB(method="GFN0-xTB"))
-	dyn = BFGS(clus,fmax = 0.05,steps = 25,logfile = None)
-	dyn.relax()
+	dyn = BFGS(clus,logfile = None)
+	dyn.relax(fmax = 0.05,steps = 25)
 	return clus
 
 def add_atoms(clusm,atcenter):
