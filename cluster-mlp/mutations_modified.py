@@ -3,8 +3,8 @@ import ase
 from ase import Atoms
 import random as ran
 from ase.constraints import FixAtoms
-from ase.data import atomic_numbers,vdw_radii
-from xtb.ase.calculator import XTB
+from ase.data import atomic_numbers,covalent_radii
+#from xtb.ase.calculator import XTB
 from ase.calculators.emt import EMT
 from ase.visualize import view
 from ase.optimize import BFGS
@@ -25,41 +25,42 @@ def get_data(cluster):
 		for i in range(len(eleNames)):
 			atomic_num = atomic_numbers[eleNames[i]]
 			atomic_numbers_list.append(atomic_num)
-			eleR = vdw_radii[atomic_num]
+			eleR = covalent_radii[atomic_num]
 			eleRadii.append(eleR)
 
 		return eleNames,eleNums,natoms,stride,eleRadii
 
-'''
+
 def fixOverlap(clus):
-	   natoms = len(clus)
-	   #com = clus.get_center_of_mass()
-	   #clus.center(about = com)
+	   clus_to_fix = clus.copy()
+	   natoms = len(clus_to_fix)
+	   com = clus_to_fix.get_center_of_mass()
+	   clus_to_fix.center(about = com)
 	   for i in range(natoms):
 		   for j in range(i):
-			   r1 = np.array(clus[j].position)
-			   r2 = np.array(clus[i].position)
+			   r1 = np.array(clus_to_fix[j].position)
+			   r2 = np.array(clus_to_fix[i].position)
 			   rij = r2 - r1
 			   distance = np.sqrt(np.dot(rij, rij))
-			   dmin = vdw_radii[clus[i].number] + vdw_radii[clus[j].number]
+			   dmin = covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number]
+			   #print(distance,dmin)
 			   if distance < 0.9 * dmin:
 				   a = np.dot(r2, r2)
 				   b = np.dot(r1, r2)
 				   c = np.dot(r1, r1) - dmin**2
 				   alpha = 1.000001 * (b + np.sqrt(b * b - a * c)) / a
-				   clus[i].x *= alpha
-				   clus[i].y *= alpha
-				   clus[i].z *= alpha
+				   clus_to_fix[i].x *= alpha
+				   clus_to_fix[i].y *= alpha
+				   clus_to_fix[i].z *= alpha
 				   #print(distance,dmin)
-	   return clus
+	   return clus_to_fix
 '''
-
 def fixOverlap(clus):
 	clus.set_calculator(XTB(method="GFN0-xTB"))
 	dyn = BFGS(clus,logfile = None)
 	dyn.relax(fmax = 0.05,steps = 25)
 	return clus
-
+'''
 def add_atoms(clusm,atcenter):
 		'''
 		Add atom(s) to a smaller cluster given in poolm.dat
@@ -271,11 +272,19 @@ testclus1 = Atoms('Ni3Au2',positions = [[7.11429776,8.18434723,8.39830404],
 						   [8.27136892,7.50727631,6.42107119],
 						   [8.27919396,6.16668782,8.39830404],
 						   [5.94940156,6.16668782,8.39830404]], cell = [10.0, 10.0, 10.0],pbc = True)
+'''
 testclus2 = Atoms('Ni3Au2',positions = [[6.11429776,4.18434723,8.39830404],
 						   [4.95722660,7.50727631,6.42107119],
 						   [7.27136892,4.50727631,6.42107119],
 						   [9.27919396,6.16668782,6.39830404],
-						   [6.94940156,6.16668782,8.39830404]], cell = [10.0, 10.0, 10.0],pbc = True)
+					   [6.94940156,6.16668782,8.39830404]], cell = [10.0, 10.0, 10.0],pbc = True)
+
+rajesh_NI5 = Atoms('Ni5', positions = [[7.11429776,8.18434723,8.39830404],
+									   [5.95722660,7.50727631,6.42107119],
+									   [8.27136892,7.50727631,6.42107119],
+									   [8.27919396,6.16668782,8.39830404],
+									   [5.94940156,6.16668782,8.39830404]],cell = [10.0, 10.0, 10.0],pbc = True)
+'''
 view(testclus1)
 view(testclus2)
 testclus1.set_calculator(EMT())
@@ -286,3 +295,8 @@ print(a,b)
 new_clus,parent1,parent2 = mate(testclus1,testclus2,a,b,False)
 print(new_clus.positions)
 view(new_clus)'''
+
+
+new_fix_clus = fixOverlap(rajesh_NI5)
+view(rajesh_NI5)
+view(new_fix_clus)
