@@ -4,6 +4,7 @@ from ase import Atoms
 import random as ran
 from ase.constraints import FixAtoms
 from ase.data import atomic_numbers,covalent_radii
+from utils import CoM
 
 def get_data(cluster):
 		'''
@@ -35,8 +36,9 @@ def fixOverlap(clus_to_fix):
 	   Support function to fix any overlaps that may arise due to the mutations by radially moving the atoms that have overlap
 	   '''
 	   natoms = len(clus_to_fix)
-	   com = clus_to_fix.get_center_of_mass()
-	   clus_to_fix.center(about = com)
+	   #com = clus_to_fix.get_center_of_mass()
+	   #clus_to_fix.center(about = com)
+	   CoM(clus_to_fix)
 	   for i in range(natoms):
 		   for j in range(i):
 			   r1 = np.array(clus_to_fix[j].position)
@@ -44,7 +46,7 @@ def fixOverlap(clus_to_fix):
 			   rij = r2 - r1
 			   distance = np.sqrt(np.dot(rij, rij))
 			   dmin = covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number]
-			   if distance < 0.9 * dmin:
+			   if distance < 0.8 * dmin:
 				   a = np.dot(r2, r2)
 				   b = np.dot(r1, r2)
 				   c = np.dot(r1, r1) - dmin**2
