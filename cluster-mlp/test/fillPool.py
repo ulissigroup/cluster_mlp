@@ -17,6 +17,7 @@ def fillPool(nPool,eleNames,eleNums,eleRadii):
 		d = (eleRadii[0] + eleRadii[-1])/2
 		clusm = Atoms(ele_initial, [(-d, 0.0, 0.0), (d, 0.0, 0.0)])
 		clus = addAtoms_GIGA(clusm,eleNames,eleNums,eleRadii )
+		clus.center(vacuum=10)
             #vaspIN(self.calcNum,clus,self.vac,self.surfGA,self.clusHeight)
             #nmut = 0
             #ibond = 0
