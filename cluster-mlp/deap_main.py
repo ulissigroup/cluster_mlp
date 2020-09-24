@@ -7,6 +7,7 @@ from deap import tools
 from ase import Atoms
 from fillPool import fillPool
 from mutations import homotop,rattle_mut,rotate_mut,twist,tunnel,partialInversion,mate
+import copy
 
 def fitness_func1(individual):
 	atoms = individual[0]
@@ -61,13 +62,18 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 			print('Starting Evolution')
 			offspring = toolbox.select(pop,2,10)
 			if random.random() < CXPB:
-				parent1, = offspring[0]
-				parent2, = offspring[1]
+				parent1 = copy.deepcopy(offspring[0])
+				parent2 = copy.deepcopy(offspring[1])
 				fit1, = offspring[0].fitness.values
 				fit2, = offspring[1].fitness.values
-				toolbox.mate(parent1,parent2,fit1,fit2)
-				del offspring[0].fitness.values
-				del offspring[1].fitness.values
+				toolbox.mate(parent1[0],parent2[0],fit1,fit2)
+				new_fitness = fitness_func2(parent1,calc)
+				if new_fitness < offspring[0].fitness.values:
+					del offspring[0].fitness.values
+					offspring[0].fitness.values = new_fitness
+				if new_fitness < offspring[1].fitness.values:
+					del offspring[1].fitness.values
+					offspring[1].fitness.values = new_fitness
 			for mutant in offspring:
 				if random.random() < MUTPB:
 					mutType = random.choice(['homotop','rattle','rotate','twist','tunnel','partialinv'])
