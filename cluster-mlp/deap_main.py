@@ -12,7 +12,7 @@ import copy
 def fitness_func1(individual):
 	atoms = individual[0]
 	energy = atoms.get_potential_energy()
-	return -energy,
+	return energy,
 
 def fitness_func2(individual,calc):
 	atoms = individual[0]
@@ -20,10 +20,10 @@ def fitness_func2(individual,calc):
 	dyn = BFGS(atoms,logfile = None)
 	dyn.run(fmax = 0.05)
 	energy = atoms.get_potential_energy()
-	return -energy,
+	return energy,
 
 def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
-	creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+	creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
 	creator.create("Individual", list,fitness=creator.FitnessMax)
 
 	toolbox = base.Toolbox()
