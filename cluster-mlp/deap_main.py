@@ -1,8 +1,6 @@
 import random
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 from ase.optimize import BFGS
-from ase.calculators.emt import EMT
-from ase.visualize import view
 from deap import base
 from deap import creator
 from deap import tools
@@ -10,18 +8,12 @@ from ase import Atoms
 from fillPool import fillPool
 from mutations import homotop,rattle_mut,rotate_mut,twist,tunnel,partialInversion,mate
 
-eleNames = ['Cu', 'Al']
-eleNums = [3, 5]
-nPool = 100
-eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
-calc = EMT()
-
 def fitness_func1(individual):
 	atoms = individual[0]
 	energy = atoms.get_potential_energy()
 	return -energy,
 
-def fitness_func2(individual,calc=calc):
+def fitness_func2(individual,calc):
 	atoms = individual[0]
 	atoms.set_calculator(calc)
 	dyn = BFGS(atoms,logfile = None)
@@ -29,32 +21,32 @@ def fitness_func2(individual,calc=calc):
 	energy = atoms.get_potential_energy()
 	return -energy,
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list,fitness=creator.FitnessMax)
+def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
+	creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+	creator.create("Individual", list,fitness=creator.FitnessMax)
 
-toolbox = base.Toolbox()
+	toolbox = base.Toolbox()
 
-toolbox.register("poolfill", fillPool,eleNames,eleNums,eleRadii,calc)
+	toolbox.register("poolfill", fillPool,eleNames,eleNums,eleRadii,calc)
 
-toolbox.register("individual",tools.initRepeat,creator.Individual,toolbox.poolfill,1)
+	toolbox.register("individual",tools.initRepeat,creator.Individual,toolbox.poolfill,1)
 
 
-toolbox.register("evaluate1", fitness_func1)
-toolbox.register("evaluate2", fitness_func2,calc = calc)
-toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+	toolbox.register("evaluate1", fitness_func1)
+	toolbox.register("evaluate2", fitness_func2,calc = calc)
+	toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-#REGISTERING MUTATIONS AND CROSSOVER
-toolbox.register("mate", mate)
-toolbox.register("mutate_homotop", homotop)
-toolbox.register("mutate_rattle", rattle_mut)
-toolbox.register("mutate_rotate", rotate_mut)
-toolbox.register("mutate_twist", twist)
-toolbox.register("mutate_tunnel", tunnel)
-toolbox.register("mutate_partialinv",partialInversion)
+	#REGISTERING MUTATIONS AND CROSSOVER
+	toolbox.register("mate", mate)
+	toolbox.register("mutate_homotop", homotop)
+	toolbox.register("mutate_rattle", rattle_mut)
+	toolbox.register("mutate_rotate", rotate_mut)
+	toolbox.register("mutate_twist", twist)
+	toolbox.register("mutate_tunnel", tunnel)
+	toolbox.register("mutate_partialinv",partialInversion)
 
-toolbox.register("select", tools.selTournament)
+	toolbox.register("select", tools.selTournament)
 
-def main():
 	CXPB, MUTPB = 0.5, 0.2
 	pop = toolbox.population(n=nPool)
 
@@ -63,7 +55,7 @@ def main():
 	        ind.fitness.values = fit
 	g = 0
 	fits = [ind.fitness.values[0] for ind in pop]
-	while g < 1000:
+	while g < generations:
 			g = g + 1
 			print('Generation',g)
 			print('Starting Evolution')
@@ -92,7 +84,7 @@ def main():
 					if mutType == 'partialinv':
 						toolbox.mutate_partialinv(mutant[0])
 				#CHECK IF REQUIRED
-				new_fitness = fitness_func2(mutant)
+				new_fitness = fitness_func2(mutant,calc)
 				if new_fitness < mutant.fitness.values:
 					del mutant.fitness.values
 					mutant.fitness.values = new_fitness
@@ -107,5 +99,4 @@ def main():
 			print('Best individual is',best_ind)
 			print('Best individual fitness is',best_ind.fitness.values)
 
-if __name__ == '__main__':
-	main()
+	return best_ind[0]
