@@ -22,7 +22,7 @@ def fitness_func2(individual,calc):
 	energy = atoms.get_potential_energy()
 	return -energy,
 
-def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
+def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,CXPB = 0.5, MUTPB = 0.2):
 	creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 	creator.create("Individual", list,fitness=creator.FitnessMax)
 
@@ -48,7 +48,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 
 	toolbox.register("select", tools.selTournament)
 
-	CXPB, MUTPB = 0.5, 0.2
+
 	population = toolbox.population(n=nPool)
 
 	fitnesses = list(map(toolbox.evaluate1, population))
@@ -75,13 +75,13 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 				f2, = fit2
 				toolbox.mate(parent1[0],parent2[0],f1,f2)
 				new_fitness = fitness_func2(parent1,calc)
-				if new_fitness < fit1:
+				if new_fitness > fit1:
 					del offspring[0].fitness.values
 					population.pop(index1)
 					offspring[0] = parent1
 					offspring[0].fitness.values = new_fitness
 					population.append(offspring[0])
-				elif new_fitness < fit2:
+				elif new_fitness > fit2:
 					del offspring[1].fitness.values
 					population.pop(index2)
 					offspring[1] = parent1
@@ -91,7 +91,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 				ilist = [index1,index2]
 				if random.random() < MUTPB:
 					mutant = copy.deepcopy(mut)
-					mutType = random.choice(['homotop','rattle','tunnel','rotate','twist','partialinv'])
+					mutType = random.choice(['homotop','rattle','rotate','twist','partialinv'])
 					if mutType == 'homotop':
 						toolbox.mutate_homotop(mutant[0])
 					if mutType == 'rattle':
@@ -106,13 +106,13 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 						toolbox.mutate_partialinv(mutant[0])
 				#CHECK IF REQUIRED
 					new_fitness = fitness_func2(mutant,calc)
-					if new_fitness < mut.fitness.values and i == 0:
+					if new_fitness > mut.fitness.values and i == 0:
 						del mut.fitness.values
 						population.pop(index1)
 						mut = mutant
 						mut.fitness.values = new_fitness
 						population.append(mut)
-					if new_fitness < mut.fitness.values and i == 1:
+					if new_fitness > mut.fitness.values and i == 1:
 						del mut.fitness.values
 						population.pop(index2)
 						mut = mutant
@@ -125,9 +125,8 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 			for ind,fit in zip(invalid_ind,fitnesses):
 				ind.fitness.values = fit
 
-			best_ind = tools.selWorst(population,1)[0]
+			best_ind = tools.selBest(population,1)[0]
 			print('Best individual is',best_ind)
 			print('Best individual fitness is',best_ind.fitness.values)
 			bi.append(best_ind[0])
-
 	return bi,best_ind[0]
