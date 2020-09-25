@@ -49,34 +49,49 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 	toolbox.register("select", tools.selTournament)
 
 	CXPB, MUTPB = 0.5, 0.2
-	pop = toolbox.population(n=nPool)
+	population = toolbox.population(n=nPool)
 
-	fitnesses = list(map(toolbox.evaluate1, pop))
-	for ind, fit in zip(pop, fitnesses):
+	fitnesses = list(map(toolbox.evaluate1, population))
+	for ind, fit in zip(population, fitnesses):
 	        ind.fitness.values = fit
 	g = 0
-	fits = [ind.fitness.values[0] for ind in pop]
+	fits = [ind.fitness.values[0] for ind in population]
+	bi = []
+	mutType = None
 	while g < generations:
 			g = g + 1
 			print('Generation',g)
 			print('Starting Evolution')
-			offspring = toolbox.select(pop,2,10)
+			offspring = toolbox.select(population,2,10)
+			index1 = population.index(offspring[0])
+			index2 = population.index(offspring[1])
 			if random.random() < CXPB:
+				mutType = 'crossover'
 				parent1 = copy.deepcopy(offspring[0])
 				parent2 = copy.deepcopy(offspring[1])
-				fit1, = offspring[0].fitness.values
-				fit2, = offspring[1].fitness.values
-				toolbox.mate(parent1[0],parent2[0],fit1,fit2)
+				fit1 = offspring[0].fitness.values
+				f1, = fit1
+				fit2 = offspring[1].fitness.values
+				f2, = fit2
+				toolbox.mate(parent1[0],parent2[0],f1,f2)
 				new_fitness = fitness_func2(parent1,calc)
-				if new_fitness < offspring[0].fitness.values:
+				if new_fitness < fit1:
 					del offspring[0].fitness.values
+					population.pop(index1)
+					offspring[0] = parent1
 					offspring[0].fitness.values = new_fitness
-				if new_fitness < offspring[1].fitness.values:
+					population.append(offspring[0])
+				elif new_fitness < fit2:
 					del offspring[1].fitness.values
+					population.pop(index2)
+					offspring[1] = parent1
 					offspring[1].fitness.values = new_fitness
-			for mutant in offspring:
+					population.append(offspring[1])
+			for i,mut in enumerate(offspring):
+				ilist = [index1,index2]
 				if random.random() < MUTPB:
-					mutType = random.choice(['homotop','rattle','rotate','twist','tunnel','partialinv'])
+					mutant = copy.deepcopy(mut)
+					mutType = random.choice(['homotop','rattle','tunnel','rotate','twist','partialinv'])
 					if mutType == 'homotop':
 						toolbox.mutate_homotop(mutant[0])
 					if mutType == 'rattle':
@@ -90,19 +105,29 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc):
 					if mutType == 'partialinv':
 						toolbox.mutate_partialinv(mutant[0])
 				#CHECK IF REQUIRED
-				new_fitness = fitness_func2(mutant,calc)
-				if new_fitness < mutant.fitness.values:
-					del mutant.fitness.values
-					mutant.fitness.values = new_fitness
+					new_fitness = fitness_func2(mutant,calc)
+					if new_fitness < mut.fitness.values and i == 0:
+						del mut.fitness.values
+						population.pop(index1)
+						mut = mutant
+						mut.fitness.values = new_fitness
+						population.append(mut)
+					if new_fitness < mut.fitness.values and i == 1:
+						del mut.fitness.values
+						population.pop(index2)
+						mut = mutant
+						mut.fitness.values = new_fitness
+						population.append(mut)
 				#ENDS
+
 			invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
 			fitnesses = map(toolbox.evaluate2,invalid_ind)
 			for ind,fit in zip(invalid_ind,fitnesses):
 				ind.fitness.values = fit
 
-			print('End of evolution')
-			best_ind = tools.selWorst(pop,1)[0]
+			best_ind = tools.selWorst(population,1)[0]
 			print('Best individual is',best_ind)
 			print('Best individual fitness is',best_ind.fitness.values)
+			bi.append(best_ind[0])
 
-	return best_ind[0]
+	return bi,best_ind[0]

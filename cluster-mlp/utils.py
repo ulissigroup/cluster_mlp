@@ -67,7 +67,7 @@ def fixOverlap(clus_to_fix):
 				   clus_to_fix[i].x *= alpha
 				   clus_to_fix[i].y *= alpha
 				   clus_to_fix[i].z *= alpha
-	   clus_to_fix.center(vacuum=1)
+	   clus_to_fix.center(vacuum=10)
 
 	   return clus_to_fix
 

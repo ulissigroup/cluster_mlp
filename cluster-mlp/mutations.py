@@ -44,7 +44,7 @@ def twist(parent):
 		Twist the cluster
 		'''
 		clus = parent
-		clus.rotate('y','z',center = 'COP')
+		clus.rotate('y','z',center = 'COM')
 		clus = fixOverlap(clus)
 		return [clus]
 
@@ -58,9 +58,8 @@ def tunnel(parent):
 		center = clus.get_center_of_mass()
 		distances = []
 		for atom in clus:
-			distance = np.sqrt(np.dot((center - atom.position),(center - atom.position)))
+			distance = np.sqrt(np.sum((center - atom.position)**2))
 			distances.append(distance)
-
 		distances = np.array(distances)
 		max_index = np.argmax(distances)
 		x = clus[max_index].x
@@ -79,7 +78,7 @@ def rotate_mut(parent):
 		clus = parent
 		angle = ran.randint(1,180)
 		axis = ran.choice(['x','y','z'])
-		clus.rotate(angle,axis,center = 'COP')
+		clus.rotate(angle,axis,center = 'COM')
 		clus = fixOverlap(clus)
 
 		return [clus]
@@ -123,9 +122,9 @@ def mate(parent1,parent2,fit1,fit2,surfGA = False):
 			if surfGA == False:
 				angle = ran.randint(1,180)
 				axis = ran.choice(['x','y','z'])
-				clus1.rotate(angle,axis,center = 'COP')
+				clus1.rotate(angle,axis,center = 'COM')
 				clus1 = fixOverlap(clus1)
-				clus2.rotate(angle,axis,center = 'COP')
+				clus2.rotate(angle,axis,center = 'COM')
 				clus2 = fixOverlap(clus2)
 
 			child = []

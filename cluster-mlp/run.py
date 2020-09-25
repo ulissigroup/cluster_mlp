@@ -10,5 +10,6 @@ generations = 1000
 eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
 calc = EMT()
 
-final_cluster = cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc)
+bi,final_cluster = cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc)
 view(final_cluster)
+view(bi[0])
