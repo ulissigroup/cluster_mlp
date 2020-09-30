@@ -5,7 +5,7 @@ from distutils.command.install import INSTALL_SCHEMES
 for scheme in INSTALL_SCHEMES.values():
     scheme['data'] = scheme['purelib']
 
-setup(name='cluster_GA',
+setup(name='cluster-mlp',
       version='0.1',
       description='Module for cluster genetic algorithm',
       url='https://github.com/ulissigroup/cluster-mlp',
