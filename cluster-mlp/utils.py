@@ -3,6 +3,9 @@ import random as ran
 from ase import Atoms
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 
+def write_to_db(database,image):
+        database.write(image)
+
 def CoM(clus):
 	'''
 	Support function to set the origin of the cluster at the centre of the mass

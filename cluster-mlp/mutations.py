@@ -106,7 +106,7 @@ def partialInversion(parent):
 
 def mate(parent1,parent2,fit1,fit2,surfGA = False):
 	"""
-	Randomly selected clusters from roulette wheel selection are passed:
+	Randomly selected clusters from tournament selection are passed:
 
 	1. If gas-phase, rotate randomly the clusters.
 	2. Weighted cut of the clusters in a plane
