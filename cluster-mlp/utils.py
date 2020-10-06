@@ -117,3 +117,47 @@ def addAtoms(clusm,eleNames,eleNums,eleRadii):
                         n += 1
         #print(clusm)
         return clusm
+
+
+def checkBonded(clus):
+	'''
+	Check if every atom of the cluster is bonded to other
+	'''
+	natoms = len(clus)
+	ele_list = clus.get_chemical_symbols()
+	radList = [covalent_radii[atomic_numbers[ele]] for ele in ele_list]
+	bonded = True
+
+	for i in range(natoms):
+		checkList = []
+		for j in range(natoms):
+			if i != j:
+				x = clus.get_positions()[j][0] - clus.get_positions()[i][0]
+				y = clus.get_positions()[j][1] - clus.get_positions()[i][1]
+				z = clus.get_positions()[j][2] - clus.get_positions()[i][2]
+				dij = np.sqrt(x**2 +y**2 +z**2)
+				dmin = radList[i] + radList[j]
+				if dij > 1.3*dmin:
+					checkList.append(False)
+				else:
+					checkList.append(True)
+		if True not in checkList:
+			bonded = False
+	return bonded
+
+
+def checkSimilar(clus1,clus2):
+	'''
+	Check whether two clusters are similar or not by comparing their moments of inertia
+	'''
+	Inertia1=clus1.get_moments_of_inertia()
+	Inertia2=clus2.get_moments_of_inertia(
+
+	tol = 0.07
+	if Inertia1[0]*(1-tol) <= Inertia2[0] <= Inertia1[0]*(1+tol) and Inertia1[1]*(1-tol) <= Inertia2[1] <= Inertia1[1]*(1+tol) and Inertia1[2]*(1-tol) <= Inertia2[2] <= Inertia1[2]*(1+tol):
+		differ = False
+	else:
+		differ = True
+
+	return differ
+
