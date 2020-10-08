@@ -58,39 +58,38 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	g = 0
 	fits = [ind.fitness.values[0] for ind in population]
 	bi = []
-	mutType = None
 	while g < generations:
+			mutType = None
 			g = g + 1
 			print('Generation',g)
 			print('Starting Evolution')
-			offspring = toolbox.select(population,2,10)
-			index1 = population.index(offspring[0])
-			index2 = population.index(offspring[1])
+			clusters = toolbox.select(population,2,10)
+			index1 = population.index(clusters[0])
+			index2 = population.index(clusters[1])
 			if random.random() < CXPB:
 				mutType = 'crossover'
-				parent1 = copy.deepcopy(offspring[0])
-				parent2 = copy.deepcopy(offspring[1])
-				fit1 = offspring[0].fitness.values
+				parent1 = copy.deepcopy(clusters[0])
+				parent2 = copy.deepcopy(clusters[1])
+				fit1 = clusters[0].fitness.values
 				f1, = fit1
-				fit2 = offspring[1].fitness.values
+				fit2 = clusters[1].fitness.values
 				f2, = fit2
 				toolbox.mate(parent1[0],parent2[0],f1,f2)
 				new_fitness = fitness_func2(parent1,calc)
 				if new_fitness < fit1:
-					del offspring[0].fitness.values
+					del clusters[0].fitness.values
 					population.pop(index1)
-					offspring[0] = parent1
-					offspring[0].fitness.values = new_fitness
-					population.append(offspring[0])
+					clusters[0] = parent1
+					clusters[0].fitness.values = new_fitness
+					population.append(clusters[0])
 				elif new_fitness < fit2:
-					del offspring[1].fitness.values
+					del clusters[1].fitness.values
 					population.pop(index2)
-					offspring[1] = parent1
-					offspring[1].fitness.values = new_fitness
-					population.append(offspring[1])
-			for i,mut in enumerate(offspring):
-				ilist = [index1,index2]
-				if random.random() < MUTPB:
+					clusters[1] = parent1
+					clusters[1].fitness.values = new_fitness
+					population.append(clusters[1])
+			for i,mut in enumerate(clusters):
+				if random.random() < MUTPB and mutType != 'crossover':
 					mutant = copy.deepcopy(mut)
 					mutType = random.choice(['rattle','rotate','twist','partialinv'])
 					if mutType == 'homotop':
@@ -120,11 +119,11 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						mut.fitness.values = new_fitness
 						population.append(mut)
 
-			invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+			invalid_ind = [ind for ind in clusters if not ind.fitness.valid]
 			fitnesses = map(toolbox.evaluate2,invalid_ind)
 			for ind,fit in zip(invalid_ind,fitnesses):
 				ind.fitness.values = fit
-
+			print(mutType)
 			best_ind = tools.selWorst(population,1)[0]
 			print('Best individual is',best_ind)
 			print('Best individual fitness is',best_ind.fitness.values)
