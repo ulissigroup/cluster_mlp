@@ -4,7 +4,8 @@ from ase import Atoms
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 
 def write_to_db(database,image):
-        database.write(image)
+	image.get_potential_energy()
+	database.write(image,relaxed = True)
 
 def CoM(clus):
 	'''
@@ -118,7 +119,6 @@ def addAtoms(clusm,eleNames,eleNums,eleRadii):
         #print(clusm)
         return clusm
 
-
 def checkBonded(clus):
 	'''
 	Check if every atom of the cluster is bonded to other
@@ -145,11 +145,10 @@ def checkBonded(clus):
 			bonded = False
 	return bonded
 
-
+'''
 def checkSimilar(clus1,clus2):
-	'''
+
 	Check whether two clusters are similar or not by comparing their moments of inertia
-	'''
 	Inertia1=clus1.get_moments_of_inertia()
 	Inertia2=clus2.get_moments_of_inertia(
 
@@ -159,5 +158,4 @@ def checkSimilar(clus1,clus2):
 	else:
 		differ = True
 
-	return differ
-
+	return differ'''

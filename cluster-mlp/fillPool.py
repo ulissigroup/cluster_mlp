@@ -17,12 +17,5 @@ def fillPool(eleNames,eleNums,eleRadii,calc):
 	dyn.run(fmax = 0.05,steps = 100)
 	energy = clus.get_potential_energy()
 	clus.set_calculator(sp(atoms=clus, energy=energy))
-            #vaspIN(self.calcNum,clus,self.vac,self.surfGA,self.clusHeight)
-            #nmut = 0
-            #ibond = 0
-            #relax()
-            #print(clus)
-		#ini_pool.append(clus)
-            #print(ini_pool)
 	return  clus
 
