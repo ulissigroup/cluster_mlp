@@ -145,12 +145,12 @@ def checkBonded(clus):
 			bonded = False
 	return bonded
 
-'''
+
 def checkSimilar(clus1,clus2):
 
-	Check whether two clusters are similar or not by comparing their moments of inertia
+	'''Check whether two clusters are similar or not by comparing their moments of inertia'''
 	Inertia1=clus1.get_moments_of_inertia()
-	Inertia2=clus2.get_moments_of_inertia(
+	Inertia2=clus2.get_moments_of_inertia()
 
 	tol = 0.07
 	if Inertia1[0]*(1-tol) <= Inertia2[0] <= Inertia1[0]*(1+tol) and Inertia1[1]*(1-tol) <= Inertia2[1] <= Inertia1[1]*(1+tol) and Inertia1[2]*(1-tol) <= Inertia2[2] <= Inertia1[2]*(1+tol):
@@ -158,4 +158,4 @@ def checkSimilar(clus1,clus2):
 	else:
 		differ = True
 
-	return differ'''
+	return differ
