@@ -12,10 +12,6 @@ def fillPool(eleNames,eleNums,eleRadii,calc):
 	d = (eleRadii[0] + eleRadii[-1])/2
 	clusm = Atoms(ele_initial, [(-d, 0.0, 0.0), (d, 0.0, 0.0)])
 	clus = addAtoms(clusm,eleNames,eleNums,eleRadii )
-	clus.calc = calc
-	dyn = BFGS(clus,logfile = None)
-	dyn.run(fmax = 0.05,steps = 100)
-	energy = clus.get_potential_energy()
-	clus.set_calculator(sp(atoms=clus, energy=energy))
+
 	return  clus
 
