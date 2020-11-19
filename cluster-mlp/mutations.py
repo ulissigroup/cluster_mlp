@@ -36,7 +36,9 @@ def rattle_mut(parent):
 	clus.set_constraint(const)
 	clus.rattle(stdev=0.1)
 	del clus.constraints
+	print(clus.positions)
 	clus = fixOverlap(clus)
+	print(clus.positions)
 	return clus
 
 
@@ -88,11 +90,11 @@ def partialInversion(parent):
                         ele,x,y,z = clus.get_chemical_symbols()[i],  clus.get_positions()[i][0], clus.get_positions()[i][1], clus.get_positions()[i][2]
                         r = np.array([x,y,z])
                         ri = 2*fc - r
-                        clus[i].x = ri[0] 
-                        clus[i].y = ri[1] 
-                        clus[i].z = ri[2] 
+                        clus[i].x = ri[0]
+                        clus[i].y = ri[1]
+                        clus[i].z = ri[2]
                         new_coord = (ri[0], ri[1], ri[2])
-                
+
                 clus = fixOverlap(clus)
                 return clus
 
@@ -116,7 +118,7 @@ def tunnel(parent):
                         clus[i].x = w[i][2]
                         clus[i].y = w[i][3]
                         clus[i].z = w[i][4]
-                
+
                 nat = int(round(0.75*natoms))
                 atomNum = ran.randrange(nat,natoms)
                 x,y,z = clus[atomNum].x, clus[atomNum].y, clus[atomNum].z
@@ -124,7 +126,7 @@ def tunnel(parent):
 
                 clus = fixOverlap(clus)
                 return clus
- 
+
 def skin(parent):
                 '''
                 Keep 80% of the cluster atoms and relocate the remaining
@@ -144,8 +146,7 @@ def skin(parent):
                         core_ele.append(ele)
                 core = Atoms(core_ele, core_pos)
                 clus = addAtoms(core,eleNames,eleNums,eleRadii)
-                clus = fixOverlap(clus)
-                
+
                 return clus
 
 def changeCore(parent):
@@ -175,7 +176,6 @@ def changeCore(parent):
                         clus = sortR0(clus,R0)
                         del clus[iout]
                         clus = addAtoms(clus,eleNames,eleNums,eleRadii)
-                        clus = fixOverlap(clus)
 
                 return clus
 
@@ -184,7 +184,6 @@ def changeCore(parent):
 def mate(parent1,parent2,fit1,fit2,surfGA = False):
 	"""
 	Randomly selected clusters from tournament selection are passed:
-
 	1. If gas-phase, rotate randomly the clusters.
 	2. Weighted cut of the clusters in a plane
 	   perpendicular to the surface.
@@ -235,9 +234,6 @@ def mate(parent1,parent2,fit1,fit2,surfGA = False):
 		final_child += c
 
 	final_child = fixOverlap(final_child)
-	print('final child')
-	print(final_child)
-	print(final_child.get_positions())
 	parent1 = final_child
 	parent2 = parent2
 	return [parent1,parent2]

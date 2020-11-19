@@ -107,10 +107,13 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						mutType = random.choice(['rattle','rotate','homotop','twist','partialinv','tunnel','skin','changecore'])
 
 					muttype_list.append(mutType)
+
 					if mutType == 'homotop':
 						mutant[0] = toolbox.mutate_homotop(mutant[0])
 					if mutType == 'rattle':
+						print(mutant[0].positions)
 						mutant[0] = toolbox.mutate_rattle(mutant[0])
+						print(mutant[0].positions)
 					if mutType == 'rotate':
 						mutant[0] = toolbox.mutate_rotate(mutant[0])
 					if mutType == 'twist':

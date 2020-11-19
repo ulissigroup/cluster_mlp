@@ -115,7 +115,7 @@ def addAtoms(clusm,eleNames,eleNums,eleRadii):
                         coord_xyz.append(atom)
                         eleList.append(ele)
                         clusm = Atoms(eleList, coord_xyz)
-                        fixOverlap(clusm)
+                        clusm = fixOverlap(clusm)
                         n += 1
         #print(clusm)
         return clusm
