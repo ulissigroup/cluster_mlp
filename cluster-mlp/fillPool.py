@@ -1,7 +1,6 @@
 from utils import addAtoms
 from ase import Atoms
-from ase.optimize import BFGS
-from ase.calculators.singlepoint import SinglePointCalculator as sp
+from utils import fixOverlap
 
 def fillPool(eleNames,eleNums,eleRadii,calc):
 	'''
@@ -12,6 +11,6 @@ def fillPool(eleNames,eleNums,eleRadii,calc):
 	d = (eleRadii[0] + eleRadii[-1])/2
 	clusm = Atoms(ele_initial, [(-d, 0.0, 0.0), (d, 0.0, 0.0)])
 	clus = addAtoms(clusm,eleNames,eleNums,eleRadii )
-
+	clus = fixOverlap(clus)
 	return  clus
 

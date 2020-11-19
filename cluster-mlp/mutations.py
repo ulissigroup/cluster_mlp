@@ -2,7 +2,7 @@ import numpy as np
 from ase import Atoms
 import random as ran
 from ase.constraints import FixAtoms
-from utils import get_data,fixOverlap
+from utils import get_data,fixOverlap,sortR0,CoM,addAtoms
 
 def homotop(parent):
 	'''
@@ -22,7 +22,7 @@ def homotop(parent):
 	ele1_position = ran.choice(ele1_index)
 	ele2_position = ran.choice(ele2_index)
 	clus.positions[[ele1_position,ele2_position]] = clus.positions[[ele2_position,ele1_position]]
-	return [clus]
+	return clus
 
 def rattle_mut(parent):
 	'''
@@ -35,7 +35,7 @@ def rattle_mut(parent):
 	clus.rattle(stdev=0.1)
 	del clus.constraints
 	clus = fixOverlap(clus)
-	return [clus]
+	return clus
 
 
 def twist(parent):
@@ -45,7 +45,7 @@ def twist(parent):
 	clus = parent
 	clus.rotate('y','z',center = 'COM')
 	clus = fixOverlap(clus)
-	return [clus]
+	return clus
 
 
 def tunnel(parent):
@@ -67,7 +67,7 @@ def tunnel(parent):
 	clus.positions[max_index] = (-x,-y,-z)
 
 	clus = fixOverlap(clus)
-	return [clus]
+	return clus
 
 
 def rotate_mut(parent):
@@ -80,7 +80,7 @@ def rotate_mut(parent):
 	clus.rotate(angle,axis,center = 'COM')
 	clus = fixOverlap(clus)
 
-	return [clus]
+	return clus
 
 def partialInversion(parent):
 	'''
@@ -102,7 +102,59 @@ def partialInversion(parent):
 		clus.positions[i] = (-x,-y,-z)
 
 	clus = fixOverlap(clus)
-	return [clus]
+	return clus
+
+def skin(parent):
+                '''
+                Keep 80% of the cluster atoms and relocate the remaining
+                '''
+                clus = parent
+                eleNames,eleNums,natoms,stride,eleRadii = get_data(clus)
+                CoM(clus)
+                nfix = int(round(0.8*natoms))
+                R0 = [0.0,0.0,0.0]
+                clus = sortR0(clus,R0)
+                core_pos = []
+                core_ele = []
+                for i in range(nfix):
+                        x,y,z = clus[i].position
+                        core_pos.append((x,y,z))
+                        ele = clus[i].symbol
+                        core_ele.append(ele)
+                core = Atoms(core_ele, core_pos)
+                clus = addAtoms(core,eleNames,eleNums,eleRadii)
+
+                return clus
+
+def changeCore(parent):
+                '''
+                Modify the core
+                '''
+                clus = parent
+                eleNames,eleNums,natoms,stride,eleRadii = get_data(clus)
+                CoM(clus)
+                inout = ran.choice([1,2]) #inout = 1 muttpe: + core; inout = 2 muttype: - core
+                if inout == 1:
+                        nout = int(0.2*natoms)
+                        if nout < 1:
+                                nout = 1
+                        icenter = ran.randrange(nout) + 1
+                        R0 = [0.0,0.0,0.0]
+                        clus = sortR0(clus,R0)
+                        clus[-icenter].position  = [0.1, 0.0, 0.0]
+                        clus = fixOverlap(clus)
+
+                elif inout == 2:
+                        ncore = int(0.1*natoms)
+                        if ncore < 1:
+                                ncore = 1
+                        iout = ran.randrange(ncore)
+                        R0 = [0.0,0.0,0.0]
+                        clus = sortR0(clus,R0)
+                        del clus[iout]
+                        clus = addAtoms(clus,eleNames,eleNums,eleRadii)
+
+                return clus
 
 def mate(parent1,parent2,fit1,fit2,surfGA = False):
 	"""

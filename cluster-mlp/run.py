@@ -5,7 +5,7 @@ from ase.visualize import view
 
 eleNames = ['Cu', 'Al']
 eleNums = [3, 5]
-nPool = 10
+nPool = 5
 generations = 60
 CXPB = 0.4
 eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]

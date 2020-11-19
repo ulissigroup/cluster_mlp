@@ -2,7 +2,7 @@ import numpy as np
 import random as ran
 from ase import Atoms
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
-
+from ase.build import sort
 def write_to_db(database,image):
 	image.get_potential_energy()
 	database.write(image,relaxed = True)
@@ -71,8 +71,9 @@ def fixOverlap(clus_to_fix):
 			   clus_to_fix[i].x *= alpha
 			   clus_to_fix[i].y *= alpha
 			   clus_to_fix[i].z *= alpha
-   clus_to_fix.center(vacuum=10)
-   return clus_to_fix
+   clus_to_fix.center(vacuum=30)
+   clus_to_fix_sorted = sort(clus_to_fix)
+   return clus_to_fix_sorted
 
 def addAtoms(clusm,eleNames,eleNums,eleRadii):
         '''
@@ -159,3 +160,24 @@ def checkSimilar(clus1,clus2):
 		differ = True
 
 	return differ
+
+def sortR0(clus,R0):
+                '''
+                Sort the atom list according to their distance to R0
+                '''
+                w = []
+                natoms = len(clus)
+                for atom in clus:
+                        ele = atom.symbol
+                        x, y, z = atom.position
+                        dx = x - R0[0]
+                        dy = y - R0[1]
+                        dz = z - R0[2]
+                        dr = np.sqrt(dx**2 +dy**2 +dz**2)
+                        w.append([dr,ele,x,y,z])
+
+                w.sort()
+                ele = [w[i][1] for i in range(natoms)]
+                coord_xyz = [ (w[i][2], w[i][3], w[i][4]) for i in range(natoms)]
+                clus = Atoms(ele,coord_xyz)
+                return clus

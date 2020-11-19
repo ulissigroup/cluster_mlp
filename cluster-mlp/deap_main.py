@@ -4,7 +4,7 @@ from deap import base
 from deap import creator
 from deap import tools
 from fillPool import fillPool
-from mutations import homotop,rattle_mut,rotate_mut,twist,tunnel,partialInversion,mate
+from mutations import homotop,rattle_mut,rotate_mut,twist,tunnel,partialInversion,mate,skin,changeCore
 import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
@@ -43,6 +43,8 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	toolbox.register("mutate_twist", twist)
 	toolbox.register("mutate_tunnel", tunnel)
 	toolbox.register("mutate_partialinv",partialInversion)
+	toolbox.register("mutate_skin",skin)
+	toolbox.register("mutate_changecore",changeCore)
 
 	toolbox.register("select", tools.selRoulette)
 
@@ -60,6 +62,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	bi = []
 	while g < generations:
 			mutType = None
+			muttype_list = []
 			g = g + 1
 			print('Generation',g)
 			print('Starting Evolution')
@@ -67,6 +70,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 			if random.random() < CXPB:
 				clusters = toolbox.select(population,2)
 				mutType = 'crossover'
+				muttype_list.append(mutType)
 				parent1 = copy.deepcopy(clusters[0])
 				parent2 = copy.deepcopy(clusters[1])
 				fit1 = clusters[0].fitness.values
@@ -98,22 +102,27 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 				for m,mut in enumerate(population):
 					mutant = copy.deepcopy(mut)
 					if singleTypeCluster:
-						mutType = random.choice(['rattle','rotate','twist','partialinv'])
+						mutType = random.choice(['rattle','rotate','twist','partialinv','tunnel','skin','changecore'])
 					else:
-						mutType = random.choice(['rattle','homotop','rotate','twist','partialinv'])
-					if mutType == 'homotop':
-						toolbox.mutate_homotop(mutant[0])
-					if mutType == 'rattle':
-						toolbox.mutate_rattle(mutant[0])
-					if mutType == 'rotate':
-						toolbox.mutate_rotate(mutant[0])
-					if mutType == 'twist':
-						toolbox.mutate_twist(mutant[0])
-					if mutType == 'tunnel':
-						toolbox.mutate_tunnel(mutant[0])
-					if mutType == 'partialinv':
-						toolbox.mutate_partialinv(mutant[0])
+						mutType = random.choice(['rattle','rotate','homotop','twist','partialinv','tunnel','skin','changecore'])
 
+					muttype_list.append(mutType)
+					if mutType == 'homotop':
+						mutant[0] = toolbox.mutate_homotop(mutant[0])
+					if mutType == 'rattle':
+						mutant[0] = toolbox.mutate_rattle(mutant[0])
+					if mutType == 'rotate':
+						mutant[0] = toolbox.mutate_rotate(mutant[0])
+					if mutType == 'twist':
+						mutant[0] = toolbox.mutate_twist(mutant[0])
+					if mutType == 'tunnel':
+						mutant[0] = toolbox.mutate_tunnel(mutant[0])
+					if mutType == 'partialinv':
+						mutant[0] = toolbox.mutate_partialinv(mutant[0])
+					if mutType == 'skin':
+						mutant[0] = toolbox.mutate_skin(mutant[0])
+					if mutType == 'changecore':
+						mutant[0] = toolbox.mutate_changecore(mutant[0])
 					diff_list = []
 
 					if checkBonded(mutant[0]) == True:
@@ -132,10 +141,10 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 				new_population = copy.deepcopy(population)
 				for m in mut_pop:
 					new_population.append(m)
-				best_ten_clus = tools.selWorst(new_population,10)
+				best_ten_clus = tools.selWorst(new_population,nPool)
 				population = best_ten_clus
 			print(len(population))
-			print(mutType)
+			print('Mutations were:',muttype_list)
 			best_clus = tools.selWorst(population,1)[0]
 			print('Lowest energy individual is',best_clus)
 			print('Lowest energy is',best_clus.fitness.values)
