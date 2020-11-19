@@ -2,13 +2,14 @@ import numpy as np
 from ase import Atoms
 import random as ran
 from ase.constraints import FixAtoms
-from utils import get_data,fixOverlap,sortR0,CoM,addAtoms
+from utils import CoM,get_data,fixOverlap,addAtoms,sortR0
 
 def homotop(parent):
 	'''
 	Choose pair of different elements to swap
 	'''
 	clus = parent
+	CoM(clus)
 	eleNames,eleNums,natoms,stride,eleRadii = get_data(clus)
 	eles = ran.sample(eleNames,2)
 	ele1_index = []
@@ -29,6 +30,7 @@ def rattle_mut(parent):
 	Fix a third of the atoms, then rattle the rest with a std deviation of 0.01
 	'''
 	clus = parent
+	CoM(clus)
 	indices = ran.sample(range(len(clus)), int(len(clus)/3))
 	const = FixAtoms(indices = indices)
 	clus.set_constraint(const)
@@ -43,38 +45,17 @@ def twist(parent):
 	Twist the cluster
 	'''
 	clus = parent
+	CoM(clus)
 	clus.rotate('y','z',center = 'COM')
 	clus = fixOverlap(clus)
 	return clus
-
-
-def tunnel(parent):
-	'''
-	Tunnel one of the atoms farthest from the center to
-	the other side of the cluster
-	'''
-	clus = parent
-	center = clus.get_center_of_mass()
-	distances = []
-	for atom in clus:
-		distance = np.sqrt(np.sum((center - atom.position)**2))
-		distances.append(distance)
-	distances = np.array(distances)
-	max_index = np.argmax(distances)
-	x = clus[max_index].x
-	y = clus[max_index].y
-	z = clus[max_index].z
-	clus.positions[max_index] = (-x,-y,-z)
-
-	clus = fixOverlap(clus)
-	return clus
-
 
 def rotate_mut(parent):
 	'''
 	Rotate the cluster by a randomly selected angle over a randomly selected axis
 	'''
 	clus = parent
+	CoM(clus)
 	angle = ran.randint(1,180)
 	axis = ran.choice(['x','y','z'])
 	clus.rotate(angle,axis,center = 'COM')
@@ -82,28 +63,68 @@ def rotate_mut(parent):
 
 	return clus
 
+
 def partialInversion(parent):
-	'''
-	Choose a fragment with 30% of the cluster atoms
-	nearest to a randomly chosen atom and invert the
-	structure with respect to its geometrical center
-	'''
-	clus = parent
-	selected_atom = ran.choice(clus)
-	distances = clus.get_distances(selected_atom.index,np.arange(0,len(clus)))
-	ncount = int(0.3*len(clus))
-	idx = []
-	idx.append(np.argsort(distances)[-ncount:])
-	idx, = idx
-	for i in idx:
-		x = clus[i].x
-		y = clus[i].y
-		z = clus[i].z
-		clus.positions[i] = (-x,-y,-z)
+                '''
+                Choose a fragment with 30% of the cluster atoms
+                nearest to a randomly chosen atom and invert the
+                structure with respect to its geometrical center
+                '''
+                clus = parent
+                natoms = len(clus)
+                CoM(clus)
+                nInvert = int(round(0.3*natoms))
+                mAtom = ran.randrange(natoms)
+                R0 = clus.get_positions()[mAtom]
+                clus = sortR0(clus,R0)
 
-	clus = fixOverlap(clus)
-	return clus
+                fc = np.array([0.0,0.0,0.0])
 
+                for i in range(nInvert):
+                        r = clus.get_positions()[i]
+                        fc += r/nInvert
+                new_pos = []
+                for i in range(nInvert):
+                        ele,x,y,z = clus.get_chemical_symbols()[i],  clus.get_positions()[i][0], clus.get_positions()[i][1], clus.get_positions()[i][2]
+                        r = np.array([x,y,z])
+                        ri = 2*fc - r
+                        clus[i].x = ri[0] 
+                        clus[i].y = ri[1] 
+                        clus[i].z = ri[2] 
+                        new_coord = (ri[0], ri[1], ri[2])
+                
+                clus = fixOverlap(clus)
+                return clus
+
+def tunnel(parent):
+                '''
+                Tunnel one of the atoms farthest from the center to
+                the other side of the cluster
+                '''
+                clus = parent
+                natoms = len(clus)
+                CoM(clus)
+                w = []
+                for atom in clus:
+                        ele = atom.symbol
+                        x,y,z = atom.position
+                        r = np.sqrt(x*x + y*y + z*z)
+                        w.append([r,ele,x,y,z])
+                w.sort()
+                for i in range(natoms):
+                        clus[i].symbol = w[i][1]
+                        clus[i].x = w[i][2]
+                        clus[i].y = w[i][3]
+                        clus[i].z = w[i][4]
+                
+                nat = int(round(0.75*natoms))
+                atomNum = ran.randrange(nat,natoms)
+                x,y,z = clus[atomNum].x, clus[atomNum].y, clus[atomNum].z
+                clus[atomNum].x, clus[atomNum].y, clus[atomNum].z = -x,-y,-z
+
+                clus = fixOverlap(clus)
+                return clus
+ 
 def skin(parent):
                 '''
                 Keep 80% of the cluster atoms and relocate the remaining
@@ -123,7 +144,8 @@ def skin(parent):
                         core_ele.append(ele)
                 core = Atoms(core_ele, core_pos)
                 clus = addAtoms(core,eleNames,eleNums,eleRadii)
-
+                clus = fixOverlap(clus)
+                
                 return clus
 
 def changeCore(parent):
@@ -153,8 +175,11 @@ def changeCore(parent):
                         clus = sortR0(clus,R0)
                         del clus[iout]
                         clus = addAtoms(clus,eleNames,eleNums,eleRadii)
+                        clus = fixOverlap(clus)
 
                 return clus
+
+
 
 def mate(parent1,parent2,fit1,fit2,surfGA = False):
 	"""
@@ -210,6 +235,9 @@ def mate(parent1,parent2,fit1,fit2,surfGA = False):
 		final_child += c
 
 	final_child = fixOverlap(final_child)
+	print('final child')
+	print(final_child)
+	print(final_child.get_positions())
 	parent1 = final_child
 	parent2 = parent2
 	return [parent1,parent2]
