@@ -71,8 +71,9 @@ def fixOverlap(clus_to_fix):
 			   clus_to_fix[i].x *= alpha
 			   clus_to_fix[i].y *= alpha
 			   clus_to_fix[i].z *= alpha
-   clus_to_fix.center(vacuum=30)
+   clus_to_fix.center(vacuum=15)
    clus_to_fix_sorted = sort(clus_to_fix)
+   clus_to_fix_sorted.pbc = (True, True, True)
    return clus_to_fix_sorted
 
 def addAtoms(clusm,eleNames,eleNums,eleRadii):

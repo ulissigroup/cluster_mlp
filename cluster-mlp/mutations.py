@@ -36,9 +36,7 @@ def rattle_mut(parent):
 	clus.set_constraint(const)
 	clus.rattle(stdev=0.1)
 	del clus.constraints
-	print(clus.positions)
 	clus = fixOverlap(clus)
-	print(clus.positions)
 	return clus
 
 
