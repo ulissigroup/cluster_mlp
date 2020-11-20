@@ -140,11 +140,19 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 				for ind, fit in zip(mut_pop, fitnesses_mut):
 					ind.fitness.values = fit
 				new_population = copy.deepcopy(population)
-				for m in mut_pop:
-					new_population.append(m)
-				best_ten_clus = tools.selWorst(new_population,nPool)
-				population = best_ten_clus
-			print(len(population))
+				for m1,mut1 in enumerate(mut_pop):
+					new_diff_list = []
+					if checkBonded(mut1[0]) == True:
+						for c2,cluster1 in enumerate(population):
+							diff = checkSimilar(cluster1[0],mut1[0])
+							new_diff_list.append(diff)
+						if all(new_diff_list) == True:
+							new_population.append(mut1)
+						else:
+							pass
+				best_n_clus = tools.selWorst(new_population,nPool)
+				population = best_n_clus
+
 			print('Mutations were:',muttype_list)
 			best_clus = tools.selWorst(population,1)[0]
 			print('Lowest energy individual is',best_clus)

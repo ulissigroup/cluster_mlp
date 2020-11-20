@@ -23,6 +23,7 @@ def homotop(parent):
 	ele1_position = ran.choice(ele1_index)
 	ele2_position = ran.choice(ele2_index)
 	clus.positions[[ele1_position,ele2_position]] = clus.positions[[ele2_position,ele1_position]]
+	clus = fixOverlap(clus)
 	return clus
 
 def rattle_mut(parent):
