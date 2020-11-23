@@ -9,6 +9,11 @@ import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
 from utils import write_to_db,checkBonded,checkSimilar
+from dask_kubernetes import KubeCluster
+from dask.distributed import Client
+import dask
+import ase
+import dask.bag as db
 
 def fitness_func1(individual,calc):
 	clus = individual[0]
@@ -47,11 +52,31 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	toolbox.register("mutate_changecore",changeCore)
 
 	toolbox.register("select", tools.selRoulette)
-
-
 	population = toolbox.population(n=nPool)
+	#Dask Parallelization
+	def calculate(atoms):
+		with tempfile.TemporaryDirectory() as tmp_dir:
+			atoms.get_calculator().set(directory=tmp_dir)
+			toolbox.evaluate1(atoms)	
+		return atoms	
 
-	fitnesses = list(map(toolbox.evaluate1, population)) #USE DASK TO PARALLELIZE
+	#def dask_compute(images):
+		#images_bag = db.from_sequence(images)
+	#return images 
+
+	# Run between 0 and 4 1-core/1-gpu workers on the kube cluster
+	#cluster = KubeCluster.from_yaml('worker-gpu-spec.yml')
+	#client = Client(cluster)
+	#cluster.adapt(minimum=0, maximum=4)
+
+	#distribute and run the calculations
+	clus_bag = db.from_sequence(population)
+	clus_bag_computed = clus_bag.map(calculate)
+	fitnesses = clus_bag_computed.compute()
+
+	#population = toolbox.population(n=nPool)
+
+	#fitnesses = list(map(toolbox.evaluate1, population)) #USE DASK TO PARALLELIZE
 	for ind, fit in zip(population, fitnesses):
 	        ind.fitness.values = fit
 	g = 0
@@ -136,7 +161,11 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						else:
 							pass
 
-				fitnesses_mut = list(map(toolbox.evaluate1, mut_pop)) #USE DASK TO PARALLELIZE
+				#fitnesses_mut = list(map(toolbox.evaluate1, mut_pop)) #USE DASK TO PARALLELIZE
+				clus_bag = db.from_sequence(mut_pop)
+				clus_bag_computed = clus_bag.map(calculate)
+				fitnesses = clus_bag_computed.compute()
+				
 				for ind, fit in zip(mut_pop, fitnesses_mut):
 					ind.fitness.values = fit
 				new_population = copy.deepcopy(population)
