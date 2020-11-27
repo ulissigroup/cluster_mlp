@@ -8,20 +8,20 @@ from dask.distributed import Client
 import functools
 
 if __name__ == '__main__':
-	eleNames = ['Cu', 'Al']
-	eleNums = [3, 5]
+	eleNames = ['Cu']
+	eleNums = [6]
 	nPool = 5
-	generations = 4
-	CXPB = 0.4
+	generations = 100
+	CXPB = 0.7
 	eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
 	filename = 'cluster_GA_test' #For saving the best cluster at every generation
-	singleTypeCluster = False
+	singleTypeCluster = True
 
 	#calc = EMT()
 	calc = Vasp2(kpar=1,
              ncore=4,
              encut=400,
-             #xc='PBE',
+             xc='PBE',
              #gga='PS',
              kpts=(1,1,1),
              gamma = True,# Gamma-centered
@@ -32,7 +32,7 @@ if __name__ == '__main__':
              #lorbit=11,
              potim=0.2,
              isif=0,
-             ediffg=-0.02,
+             #ediffg=-0.02,
              #ediff=1e-6,
              lcharg=False,
              lwave=False,
