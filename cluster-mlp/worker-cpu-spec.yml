@@ -10,7 +10,7 @@ spec:
     name: dask
     env:
     - name: ASE_VASP_COMMAND
-      value: "mpirun -np 4 --mca btl_vader_single_copy_mechanism none /opt/vasp.6.1.2_pgi_mkl/bin/vasp_std"
+      value: "mpirun -np 4 --mca btl_vader_single_copy_mechanism none /opt/vasp.6.1.2_pgi_mkl/bin/vasp_gam"
     resources:
       limits:
         cpu: "4"
