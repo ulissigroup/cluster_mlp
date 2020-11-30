@@ -69,7 +69,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
     toolbox.register("mutate_skin",skin)
     toolbox.register("mutate_changecore",changeCore)
 
-    toolbox.register("select", tools.selRoulette)
+    toolbox.register("select", tools.selTournament)
 
     population = toolbox.population(n=nPool)
 
@@ -131,6 +131,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
                 toolbox.mate(parent1[0],parent2[0],f1,f2)
                 child_clus  = parent1[0]
                 print('c',child_clus)
+                print('c',child_clus.get_positions())
                 child_clus_min = minimize(child_clus,calc)
                 print(child_clus_min)
                 new_fitness = fitness_func_cross(child_clus_min)
