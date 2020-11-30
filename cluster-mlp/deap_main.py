@@ -51,7 +51,7 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	toolbox.register("mutate_skin",skin)
 	toolbox.register("mutate_changecore",changeCore)
 
-	toolbox.register("select", tools.selRoulette)
+	toolbox.register("select", tools.selTournament)
 	population = toolbox.population(n=nPool)
 	#Dask Parallelization
 	def calculate(atoms):
