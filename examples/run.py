@@ -1,4 +1,4 @@
-from deap_main import cluster_GA
+from cluster_mlp.deap_main import cluster_GA
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 from ase.calculators.emt import EMT
 from ase.visualize import view
