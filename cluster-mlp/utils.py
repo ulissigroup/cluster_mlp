@@ -62,7 +62,7 @@ def fixOverlap(clus_to_fix):
 		   r2 = np.array(clus_to_fix[i].position)
 		   rij = r2 - r1
 		   distance = np.sqrt(np.dot(rij, rij))
-		   dmin = (covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number])*0.8
+		   dmin = (covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number])*0.7
 		   if distance < 0.8 * dmin:
 			   a = np.dot(r2, r2)
 			   b = np.dot(r1, r2)
@@ -71,7 +71,7 @@ def fixOverlap(clus_to_fix):
 			   clus_to_fix[i].x *= alpha
 			   clus_to_fix[i].y *= alpha
 			   clus_to_fix[i].z *= alpha
-   clus_to_fix.center(vacuum=9.0)
+   clus_to_fix.center(vacuum=15)
    clus_to_fix_sorted = sort(clus_to_fix)
    clus_to_fix_sorted.pbc = (True, True, True)
    return clus_to_fix_sorted

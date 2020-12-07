@@ -9,11 +9,6 @@ import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
 from utils import write_to_db,checkBonded,checkSimilar
-from dask_kubernetes import KubeCluster
-from dask.distributed import Client
-import dask
-import ase
-import dask.bag as db
 
 def fitness_func1(individual,calc):
 	clus = individual[0]
@@ -52,31 +47,11 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 	toolbox.register("mutate_changecore",changeCore)
 
 	toolbox.register("select", tools.selTournament)
+
+
 	population = toolbox.population(n=nPool)
-	#Dask Parallelization
-	def calculate(atoms):
-		with tempfile.TemporaryDirectory() as tmp_dir:
-			atoms.get_calculator().set(directory=tmp_dir)
-			toolbox.evaluate1(atoms)	
-		return atoms	
 
-	#def dask_compute(images):
-		#images_bag = db.from_sequence(images)
-	#return images 
-
-	# Run between 0 and 4 1-core/1-gpu workers on the kube cluster
-	#cluster = KubeCluster.from_yaml('worker-gpu-spec.yml')
-	#client = Client(cluster)
-	#cluster.adapt(minimum=0, maximum=4)
-
-	#distribute and run the calculations
-	clus_bag = db.from_sequence(population)
-	clus_bag_computed = clus_bag.map(calculate)
-	fitnesses = clus_bag_computed.compute()
-
-	#population = toolbox.population(n=nPool)
-
-	#fitnesses = list(map(toolbox.evaluate1, population)) #USE DASK TO PARALLELIZE
+	fitnesses = list(map(toolbox.evaluate1, population)) #USE DASK TO PARALLELIZE
 	for ind, fit in zip(population, fitnesses):
 	        ind.fitness.values = fit
 	g = 0
@@ -91,39 +66,33 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 			g = g + 1
 			print('Generation',g)
 			print('Starting Evolution')
-
+			cm_pop = []
 			if random.random() < CXPB:
-				clusters = toolbox.select(population,2)
-				mutType = 'crossover'
-				muttype_list.append(mutType)
-				parent1 = copy.deepcopy(clusters[0])
-				parent2 = copy.deepcopy(clusters[1])
-				fit1 = clusters[0].fitness.values
-				f1, = fit1
-				fit2 = clusters[1].fitness.values
-				f2, = fit2
-				toolbox.mate(parent1[0],parent2[0],f1,f2)
-				new_fitness = fitness_func1(parent1,calc)
+				while len(cm_pop) != nPool:
+					diff_list = []
+					loop_count = 0
+					clusters = toolbox.select(population,2,2)
+					mutType = 'crossover'
+					muttype_list.append(mutType)
+					parent1 = copy.deepcopy(clusters[0])
+					parent2 = copy.deepcopy(clusters[1])
+					fit1 = clusters[0].fitness.values
+					f1, = fit1
+					fit2 = clusters[1].fitness.values
+					f2, = fit2
+					toolbox.mate(parent1[0],parent2[0],f1,f2)
 
-				diff_list = []
-				if checkBonded(parent1[0]) == True:
-					for c,cluster in enumerate(population):
-						diff = checkSimilar(cluster[0],parent1[0])
-						diff_list.append(diff)
+					if loop_count == 0:
+						cm_pop.append(parent1)
+					else:
+						for c,cluster in enumerate(cm_pop):
+							diff = checkSimilar(cluster[0],parent1[0])
+							diff_list.append(diff)
 
-					if all(diff_list) == True:
-						highest_energy_ind = tools.selBest(population,1)[0]
-						hei_index = population.index(highest_energy_ind)
-						hei_fitness = highest_energy_ind.fitness.values
-						if new_fitness < hei_fitness:
-							del highest_energy_ind.fitness.values
-							population.pop(hei_index)
-							highest_energy_ind = parent1
-							highest_energy_ind.fitness.values = new_fitness
-							population.append(highest_energy_ind)
+							if all(diff_list) == True:
+								cm_pop.append(parent1)
 
 			else:
-				mut_pop = []
 				for m,mut in enumerate(population):
 					mutant = copy.deepcopy(mut)
 					if singleTypeCluster:
@@ -149,38 +118,29 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						mutant[0] = toolbox.mutate_skin(mutant[0])
 					if mutType == 'changecore':
 						mutant[0] = toolbox.mutate_changecore(mutant[0])
-					diff_list = []
 
-					if checkBonded(mutant[0]) == True:
-						for c,cluster in enumerate(population):
-							diff = checkSimilar(cluster[0],mutant[0])
-							diff_list.append(diff)
+					cm_pop.append(mutant)
 
-						if all(diff_list) == True:
-							mut_pop.append(mutant)
-						else:
-							pass
+			fitnesses_mut = list(map(toolbox.evaluate1, cm_pop)) #USE DASK TO PARALLELIZE
 
-				#fitnesses_mut = list(map(toolbox.evaluate1, mut_pop)) #USE DASK TO PARALLELIZE
-				clus_bag = db.from_sequence(mut_pop)
-				clus_bag_computed = clus_bag.map(calculate)
-				fitnesses = clus_bag_computed.compute()
-				
-				for ind, fit in zip(mut_pop, fitnesses_mut):
-					ind.fitness.values = fit
-				new_population = copy.deepcopy(population)
-				for m1,mut1 in enumerate(mut_pop):
-					new_diff_list = []
-					if checkBonded(mut1[0]) == True:
-						for c2,cluster1 in enumerate(population):
-							diff = checkSimilar(cluster1[0],mut1[0])
-							new_diff_list.append(diff)
-						if all(new_diff_list) == True:
-							new_population.append(mut1)
-						else:
-							pass
-				best_n_clus = tools.selWorst(new_population,nPool)
-				population = best_n_clus
+			for ind, fit in zip(cm_pop, fitnesses_mut):
+				ind.fitness.values = fit
+
+			new_population = copy.deepcopy(population)
+
+			for cm1,cmut1 in enumerate(cm_pop):
+				new_diff_list = []
+				if checkBonded(cmut1[0]) == True:
+					for c2,cluster1 in enumerate(population):
+						diff = checkSimilar(cluster1[0],cmut1[0])
+						new_diff_list.append(diff)
+					if all(new_diff_list) == True:
+						new_population.append(cmut1)
+					else:
+						pass
+
+			best_n_clus = tools.selWorst(new_population,nPool)
+			population = best_n_clus
 
 			print('Mutations were:',muttype_list)
 			best_clus = tools.selWorst(population,1)[0]
