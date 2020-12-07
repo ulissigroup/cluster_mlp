@@ -5,8 +5,8 @@ from ase.visualize import view
 
 eleNames = ['Cu', 'Al']
 eleNums = [3, 5]
-nPool = 5
-generations = 60
+nPool = 10
+generations = 40
 CXPB = 0.4
 eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
 filename = 'cluster_GA_test' #For saving the best cluster at every generation
