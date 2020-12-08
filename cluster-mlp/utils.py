@@ -71,7 +71,7 @@ def fixOverlap(clus_to_fix):
 			   clus_to_fix[i].x *= alpha
 			   clus_to_fix[i].y *= alpha
 			   clus_to_fix[i].z *= alpha
-   clus_to_fix.center(vacuum=15)
+   clus_to_fix.center(vacuum=9)
    clus_to_fix_sorted = sort(clus_to_fix)
    clus_to_fix_sorted.pbc = (True, True, True)
    return clus_to_fix_sorted
@@ -153,8 +153,9 @@ def checkSimilar(clus1,clus2):
 	'''Check whether two clusters are similar or not by comparing their moments of inertia'''
 	Inertia1=clus1.get_moments_of_inertia()
 	Inertia2=clus2.get_moments_of_inertia()
+	#print(Inertia1, Inertia2, 'diff: ', Inertia1-Inertia2)
 
-	tol = 0.07
+	tol = 0.01
 	if Inertia1[0]*(1-tol) <= Inertia2[0] <= Inertia1[0]*(1+tol) and Inertia1[1]*(1-tol) <= Inertia2[1] <= Inertia1[1]*(1+tol) and Inertia1[2]*(1-tol) <= Inertia2[2] <= Inertia1[2]*(1+tol):
 		differ = False
 	else:
