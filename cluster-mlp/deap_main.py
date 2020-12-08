@@ -13,9 +13,8 @@ from utils import write_to_db,checkBonded,checkSimilar
 def fitness_func1(individual,calc):
 	clus = individual[0]
 	clus.calc = calc
-	energy = clus.get_potential_energy()
 	dyn = BFGS(clus,logfile = None)
-	dyn.run(fmax = 0.05,steps = 100)
+	dyn.run(fmax = 0.05,steps = 1000)
 	energy = clus.get_potential_energy()
 	clus.set_calculator(sp(atoms=clus, energy=energy))
 	return energy,
@@ -51,7 +50,13 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 
 	population = toolbox.population(n=nPool)
 
+
 	fitnesses = list(map(toolbox.evaluate1, population)) #USE DASK TO PARALLELIZE
+	print('Random Initial population after Minimization')
+	print('fitnesses:', fitnesses)
+	for i in range(len(population)):
+		print(population[i][0])
+		print(population[i][0].get_positions())
 	for ind, fit in zip(population, fitnesses):
 	        ind.fitness.values = fit
 	g = 0
@@ -68,11 +73,13 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 			print('Starting Evolution')
 			cm_pop = []
 			if random.random() < CXPB:
-				while len(cm_pop) != nPool:
-					diff_list = []
-					loop_count = 0
-					clusters = toolbox.select(population,2,2)
-					mutType = 'crossover'
+				mutType = 'crossover'
+				print('mutType', mutType)
+				loop_count = 0
+				while  loop_count != 200:
+					clusters = toolbox.select(population,2,1)
+					#mutType = 'crossover'
+					#print('mutType', mutType)
 					muttype_list.append(mutType)
 					parent1 = copy.deepcopy(clusters[0])
 					parent2 = copy.deepcopy(clusters[1])
@@ -82,17 +89,30 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 					f2, = fit2
 					toolbox.mate(parent1[0],parent2[0],f1,f2)
 
-					if loop_count == 0:
-						cm_pop.append(parent1)
-					else:
-						for c,cluster in enumerate(cm_pop):
-							diff = checkSimilar(cluster[0],parent1[0])
-							diff_list.append(diff)
+					#print('checkBonded(parent1[0]', checkBonded(parent1[0]))
+					diff_list = []
+					if checkBonded(parent1[0]) == True:
+						if loop_count == 0:
+							cm_pop.append(parent1)
+						else:
+							for c,cluster in enumerate(cm_pop):
+								diff = checkSimilar(cluster[0],parent1[0])
+								diff_list.append(diff)
 
+							#print('diff list',diff_list)
+							#print('all(diff_list)', all(diff_list))
 							if all(diff_list) == True:
 								cm_pop.append(parent1)
+					loop_count = loop_count+1
+					#print('loop_count', loop_count)
+					if len(cm_pop) == 10:
+						break
+				#print('cm_pop crossover')
+				#print(cm_pop)
 
 			else:
+				mutType = 'mutations'
+				print('mutType', mutType)
 				for m,mut in enumerate(population):
 					mutant = copy.deepcopy(mut)
 					if singleTypeCluster:
@@ -118,10 +138,33 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						mutant[0] = toolbox.mutate_skin(mutant[0])
 					if mutType == 'changecore':
 						mutant[0] = toolbox.mutate_changecore(mutant[0])
+					
+					diff_list = []
+					#print(mutant[0])
+					#print('checkBonded(mutant[0]', checkBonded(mutant[0])) 
+					if checkBonded(mutant[0]) == True:
+						for c,cluster in enumerate(cm_pop):
+							diff = checkSimilar(cluster[0],mutant[0])
+							diff_list.append(diff)
 
-					cm_pop.append(mutant)
+						#print('diff_list', diff_list)
+						#print('all(diff_list)', all(diff_list))
+						if all(diff_list) == True:
+							cm_pop.append(mutant)
+			
+				print('Mutations were:',muttype_list)
+				
+			print('len(muttype_list:',len(muttype_list))
+			print('len(cm_pop)', len(cm_pop))
 
 			fitnesses_mut = list(map(toolbox.evaluate1, cm_pop)) #USE DASK TO PARALLELIZE
+			print('Minimazation Results') 
+			print('fitnesses_mut', fitnesses_mut) 
+			print('cm_pop')
+			#print(cm_pop)
+			for i in range(len(cm_pop)):
+				print(cm_pop[i][0])
+				print(cm_pop[i][0].get_positions())
 
 			for ind, fit in zip(cm_pop, fitnesses_mut):
 				ind.fitness.values = fit
@@ -138,17 +181,17 @@ def cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB = 
 						new_population.append(cmut1)
 					else:
 						pass
-
+			print('new_population:', len(new_population))
 			best_n_clus = tools.selWorst(new_population,nPool)
 			population = best_n_clus
 
-			print('Mutations were:',muttype_list)
 			best_clus = tools.selWorst(population,1)[0]
 			print('Lowest energy individual is',best_clus)
+			print(best_clus[0].get_positions())
 			print('Lowest energy is',best_clus.fitness.values)
 			bi.append(best_clus[0])
 			write_to_db(best_db,best_clus[0])
-
+			print('\n')
 	final_pop_db = ase.db.connect("final_pop_{}.db".format(filename))
 	for clus in population:
 		write_to_db(final_pop_db,clus[0])
