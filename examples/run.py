@@ -8,14 +8,15 @@ from dask.distributed import Client
 import functools
 
 if __name__ == '__main__':
-	eleNames = ['Cu']
-	eleNums = [6]
+	eleNames = ['Cu', 'Al']
+	eleNums = [4,3]
 	nPool = 10
 	generations = 40
 	CXPB = 0.7
 	eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
-	filename = 'cluster_GA_Cu6' #For saving the best cluster at every generation
-	singleTypeCluster = True
+	filename = 'clus_Cu4Al3' #For saving the best cluster at every generation
+	log_file = 'clus_Cu4Al3.log' 
+	singleTypeCluster = False
 
 	#calc = EMT()
 	calc = Vasp2(kpar=1,
@@ -43,7 +44,8 @@ if __name__ == '__main__':
 	# Run between 0 and 4 1-core/1-gpu workers on the kube cluster
 	cluster = KubeCluster.from_yaml('worker-cpu-spec.yml')
 	client = Client(cluster)
-	cluster.adapt(minimum=0, maximum=10)
+	#cluster.adapt(minimum=0, maximum=10)
+	cluster.scale(10)
 
 
 	files_list = ['deap_main_dask.py', 'fillPool.py', 'mutations.py', 'utils.py']
@@ -67,7 +69,7 @@ if __name__ == '__main__':
 		)
 
 
-	bi,final_cluster = cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,CXPB, singleTypeCluster)
+	bi,final_cluster = cluster_GA(nPool,eleNames,eleNums,eleRadii,generations,calc,filename,log_file,CXPB, singleTypeCluster)
 	#view(final_cluster)
 	#view(bi[0])
 
