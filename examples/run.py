@@ -1,4 +1,4 @@
-from deap_main_dask import cluster_GA
+from deap_ga import cluster_GA
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 from ase.calculators.emt import EMT
 from ase.calculators.vasp import Vasp2, Vasp
@@ -8,14 +8,14 @@ from dask.distributed import Client
 import functools
 
 if __name__ == '__main__':
-	eleNames = ['Cu', 'Al']
-	eleNums = [4,3]
+	eleNames = ['Cu']
+	eleNums = [4]
 	nPool = 10
-	generations = 40
+	generations = 2
 	CXPB = 0.7
 	eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
-	filename = 'clus_Cu4Al3' #For saving the best cluster at every generation
-	log_file = 'clus_Cu4Al3.log' 
+	filename = 'clus_Cu4' #For saving the best cluster at every generation
+	log_file = 'clus_Cu4.log' 
 	singleTypeCluster = False
 
 	#calc = EMT()
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 	cluster.scale(10)
 
 
-	files_list = ['deap_main_dask.py', 'fillPool.py', 'mutations.py', 'utils.py']
+	files_list = ['deap_ga.py', 'fillPool.py', 'mutations.py', 'utils.py']
 	for i in range(len(files_list)):
 		fname = files_list[i]
 		with open(fname, 'rb') as f:
