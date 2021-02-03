@@ -2,7 +2,7 @@ import numpy as np
 import random as ran
 from ase import Atoms
 from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
-
+from ase.build import sort
 def write_to_db(database,image):
 	image.get_potential_energy()
 	database.write(image,relaxed = True)
@@ -62,7 +62,7 @@ def fixOverlap(clus_to_fix):
 		   r2 = np.array(clus_to_fix[i].position)
 		   rij = r2 - r1
 		   distance = np.sqrt(np.dot(rij, rij))
-		   dmin = covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number]
+		   dmin = (covalent_radii[clus_to_fix[i].number] + covalent_radii[clus_to_fix[j].number])*0.7
 		   if distance < 0.8 * dmin:
 			   a = np.dot(r2, r2)
 			   b = np.dot(r1, r2)
@@ -71,8 +71,10 @@ def fixOverlap(clus_to_fix):
 			   clus_to_fix[i].x *= alpha
 			   clus_to_fix[i].y *= alpha
 			   clus_to_fix[i].z *= alpha
-   clus_to_fix.center(vacuum=10)
-   return clus_to_fix
+   clus_to_fix.center(vacuum=9)
+   clus_to_fix_sorted = sort(clus_to_fix)
+   clus_to_fix_sorted.pbc = (True, True, True)
+   return clus_to_fix_sorted
 
 def addAtoms(clusm,eleNames,eleNums,eleRadii):
         '''
@@ -114,7 +116,7 @@ def addAtoms(clusm,eleNames,eleNums,eleRadii):
                         coord_xyz.append(atom)
                         eleList.append(ele)
                         clusm = Atoms(eleList, coord_xyz)
-                        fixOverlap(clusm)
+                        clusm = fixOverlap(clusm)
                         n += 1
         #print(clusm)
         return clusm
@@ -151,11 +153,33 @@ def checkSimilar(clus1,clus2):
 	'''Check whether two clusters are similar or not by comparing their moments of inertia'''
 	Inertia1=clus1.get_moments_of_inertia()
 	Inertia2=clus2.get_moments_of_inertia()
+	#print(Inertia1, Inertia2, 'diff: ', Inertia1-Inertia2)
 
-	tol = 0.07
+	tol = 0.01
 	if Inertia1[0]*(1-tol) <= Inertia2[0] <= Inertia1[0]*(1+tol) and Inertia1[1]*(1-tol) <= Inertia2[1] <= Inertia1[1]*(1+tol) and Inertia1[2]*(1-tol) <= Inertia2[2] <= Inertia1[2]*(1+tol):
 		differ = False
 	else:
 		differ = True
 
 	return differ
+
+def sortR0(clus,R0):
+                '''
+                Sort the atom list according to their distance to R0
+                '''
+                w = []
+                natoms = len(clus)
+                for atom in clus:
+                        ele = atom.symbol
+                        x, y, z = atom.position
+                        dx = x - R0[0]
+                        dy = y - R0[1]
+                        dz = z - R0[2]
+                        dr = np.sqrt(dx**2 +dy**2 +dz**2)
+                        w.append([dr,ele,x,y,z])
+
+                w.sort()
+                ele = [w[i][1] for i in range(natoms)]
+                coord_xyz = [ (w[i][2], w[i][3], w[i][4]) for i in range(natoms)]
+                clus = Atoms(ele,coord_xyz)
+                return clus
