@@ -138,6 +138,7 @@ def cluster_GA(
         write_to_db(init_pop_db, cl[0])
 
     bi = []
+    
     while g < generations:
         mutType = None
         muttype_list = []
@@ -259,7 +260,7 @@ def cluster_GA(
             mut_new_lst_min = mut_bag_computed.compute()
 
         else:
-            mut_new_lst_min = list(map(calculate, pop_list))
+            mut_new_lst_min = list(map(calculate, mut_new_lst))
 
         for o, mm in enumerate(cm_pop):
             mm[0] = mut_new_lst_min[o]
@@ -279,7 +280,6 @@ def cluster_GA(
                     diff = checkSimilar(cluster1[0], cmut1[0])
                     new_diff_list.append(diff)
                 if all(new_diff_list) == True:
-                    print("diff", new_diff_list)
                     new_population.append(cmut1)
                 else:
                     pass

@@ -8,8 +8,8 @@ from dask.distributed import Client
 
 if __name__ == "__main__":
     use_dask = False
-    eleNames = ["Cu"]
-    eleNums = [4]
+    eleNames = ["Cu","Al"]
+    eleNums = [3,5]
     nPool = 10
     generations = 50
     CXPB = 0.7
