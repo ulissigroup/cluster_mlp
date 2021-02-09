@@ -3,19 +3,17 @@ from distutils.command.install import INSTALL_SCHEMES
 
 
 for scheme in INSTALL_SCHEMES.values():
-    scheme['data'] = scheme['purelib']
+    scheme["data"] = scheme["purelib"]
 
-setup(name='cluster-mlp',
-      version='0.1',
-      description='Module for cluster genetic algorithm',
-      url='https://github.com/ulissigroup/cluster-mlp',
-      author='Saurabh Sivakumar, Rajesh Raju, Zachary Ulissi',
-      author_email='zulissi@andrew.cmu.edu',
-      packages=find_packages(),
-      include_package_data=False,
-      install_requires=['ase>=3.19.1',
-			'numpy',
-			'matplotlib',
-            		'amptorch',
-			'deap'],
-      long_description='''Module for implementing cluster GA. Future integration with MLP''',)
+setup(
+    name="cluster-mlp",
+    version="0.1",
+    description="Module for cluster genetic algorithm",
+    url="https://github.com/ulissigroup/cluster-mlp",
+    author="Saurabh Sivakumar, Rajesh Raju, Zachary Ulissi",
+    author_email="zulissi@andrew.cmu.edu",
+    packages=find_packages(),
+    include_package_data=False,
+    install_requires=["ase>=3.19.1", "numpy", "matplotlib", "amptorch", "deap", "dask"],
+    long_description="""Module for implementing cluster GA. Future integration with MLP""",
+)
