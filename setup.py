@@ -14,6 +14,6 @@ setup(
     author_email="zulissi@andrew.cmu.edu",
     packages=find_packages(),
     include_package_data=False,
-    install_requires=["ase>=3.19.1", "numpy", "matplotlib", "amptorch", "deap", "dask"],
+    install_requires=["ase>=3.19.1", "numpy", "matplotlib", "deap", "dask"],
     long_description="""Module for implementing cluster GA. Future integration with MLP""",
 )
