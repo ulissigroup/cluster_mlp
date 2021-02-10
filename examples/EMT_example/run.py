@@ -18,7 +18,7 @@ if __name__ == "__main__":
     log_file = "clus_Cu4.log"
     singleTypeCluster = False
     calc = EMT()
-
+    use_vasp = False
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
@@ -39,4 +39,5 @@ if __name__ == "__main__":
         CXPB,
         singleTypeCluster,
         use_dask,
+        use_vasp
     )
