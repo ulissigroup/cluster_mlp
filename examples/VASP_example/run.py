@@ -17,6 +17,7 @@ if __name__ == "__main__":
     filename = "clus_Cu4"  # For saving the best cluster at every generation
     log_file = "clus_Cu4.log"
     singleTypeCluster = False
+    use_vasp = True
     calc = Vasp2(kpar=1,
                 ncore=4,
                 encut=400,
@@ -59,4 +60,5 @@ if __name__ == "__main__":
         CXPB,
         singleTypeCluster,
         use_dask,
+        use_vasp
     )
