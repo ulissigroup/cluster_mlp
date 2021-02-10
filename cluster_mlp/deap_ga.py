@@ -75,7 +75,7 @@ def cluster_GA(
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
     """
 
-    def calculate(atoms,use_vasp):
+    def calculate(atoms):
         if use_vasp == True:
             atoms_min = minimize_vasp(atoms, calc)
         else:
