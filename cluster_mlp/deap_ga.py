@@ -37,6 +37,16 @@ def minimize(clus, calc):
     clus.set_calculator(sp(atoms=clus, energy=energy))
     return clus
 
+def minimize_vasp(clus, calc):
+    """
+    Cluster relaxation
+    """
+    clus.calc = copy.deepcopy(calc)
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        clus.get_calculator().set(directory=tmp_dir)
+    energy = clus.get_potential_energy()
+    clus.set_calculator(sp(atoms=clus, energy=energy))
+    return clus
 
 def fitness_func(individual):
     """
@@ -59,13 +69,17 @@ def cluster_GA(
     CXPB=0.5,
     singleTypeCluster=False,
     use_dask=False,
+    use_vasp = False
 ):
     """
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
     """
 
-    def calculate(atoms):
-        atoms_min = minimize(atoms, calc)
+    def calculate(atoms,use_vasp):
+        if use_vasp == True:
+            atoms_min = minimize_vasp(atoms, calc)
+        else:
+            atoms_min = minimize(atoms, calc)
         return atoms_min
 
     best_db = ase.db.connect("{}.db".format(filename))
