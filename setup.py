@@ -7,7 +7,7 @@ for scheme in INSTALL_SCHEMES.values():
 
 setup(
     name="cluster-mlp",
-    version="0.1",
+    version="0.2",
     description="Module for cluster genetic algorithm",
     url="https://github.com/ulissigroup/cluster-mlp",
     author="Saurabh Sivakumar, Rajesh Raju, Zachary Ulissi",
