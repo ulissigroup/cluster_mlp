@@ -1,5 +1,6 @@
 import random
 from ase.optimize import BFGS
+from ase import Atom
 from deap import base
 from deap import creator
 from deap import tools
@@ -327,5 +328,11 @@ def cluster_GA(
     final_pop_db = ase.db.connect("final_pop_{}.db".format(filename))
     for clus in population:
         write_to_db(final_pop_db, clus[0])
-
+    
+    with open(log_file, "a+") as fh:
+        fh.write("Global Minium after {} Generations \n".format(g))
+        for atom in best_clus[0]:
+            fh.write("{} {:12.8f} {:12.8f} {:12.8f} \n".format(atom.symbol, atom.x, atom.y, atom.z))
+    
     return bi, best_clus[0]
+    

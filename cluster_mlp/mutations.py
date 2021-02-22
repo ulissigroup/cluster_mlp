@@ -1,5 +1,6 @@
 import numpy as np
 from ase import Atoms
+from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 import random as ran
 from ase.constraints import FixAtoms
 from cluster_mlp.utils import CoM, get_data, fixOverlap, addAtoms, sortR0
@@ -29,46 +30,133 @@ def homotop(parent):
     clus = fixOverlap(clus)
     return clus
 
-
 def rattle_mut(parent):
     """
-    Fix a third of the atoms, then rattle the rest with a std deviation of 0.01
+    Choose one atom and move 50% or 75% of the cluster atoms
+    nearest to that atom a distance between 0 and +/- its radius
     """
     clus = parent
     CoM(clus)
-    indices = ran.sample(range(len(clus)), int(len(clus) / 3))
-    const = FixAtoms(indices=indices)
-    clus.set_constraint(const)
-    clus.rattle(stdev=0.1)
-    del clus.constraints
-    clus = fixOverlap(clus)
+    natoms = len(clus)
+    ele_list = clus.get_chemical_symbols()
+    radList = [covalent_radii[atomic_numbers[ele]] for ele in ele_list]
+    n = ran.choice([0.50,0.75])
+    nMove = int(round(n*natoms))
+    mAtom = ran.randrange(natoms)
+    ele0 = clus[mAtom].symbol
+    x0,y0,z0 = clus[mAtom].position
+
+    w = []
+    for i in range(natoms):
+        ele = clus[i].symbol
+        x,y,z = clus[i].position
+        dx = x - x0
+        dy = y - y0
+        dz = z - z0
+        dr = np.sqrt(x**2 +y**2 +z**2)
+        w.append([dr,ele,x,y,z])
+
+    w.sort()
+    for i in range(natoms):
+        clus[i].symbol = w[i][1]
+        clus[i].position = w[i][2], w[i][3], w[i][4]
+
+
+    for i in range(nMove):
+        dis = (radList[i])
+        clus[i].x += ran.uniform(-dis,dis)
+        clus[i].y += ran.uniform(-dis,dis)
+        clus[i].z += ran.uniform(-dis,dis)
+
+
+    clus  = fixOverlap(clus)
     return clus
-
-
-def twist(parent):
-    """
-    Twist the cluster
-    """
-    clus = parent
-    CoM(clus)
-    clus.rotate("y", "z", center="COM")
-    clus = fixOverlap(clus)
-    return clus
-
 
 def rotate_mut(parent):
-    """
-    Rotate the cluster by a randomly selected angle over a randomly selected axis
-    """
+    '''
+    Randomly rotate 25%, 50%, 75% of cluster atoms
+    '''
     clus = parent
+    natoms = len(clus)
     CoM(clus)
-    angle = ran.randint(1, 180)
-    axis = ran.choice(["x", "y", "z"])
-    clus.rotate(angle, axis, center="COM")
-    clus = fixOverlap(clus)
 
+    a = ran.uniform(0,2*np.pi)
+    phi = ran.uniform(0,2*np.pi)
+    psi = ran.uniform(0,np.pi)
+    ux = np.cos(phi)*np.sin(psi)
+    uy = np.sin(phi)*np.sin(psi)
+    uz = np.cos(psi)
+    w = 1.0 - np.cos(a)
+
+    rot11 = ux*ux*w + np.cos(a)
+    rot12 = ux*uy*w + uz*np.sin(a)
+    rot13 = ux*uz*w - uy*np.sin(a)
+    rot21 = uy*ux*w - uz*np.sin(a)
+    rot22 = uy*uy*w + np.cos(a)
+    rot23 = uy*uz*w + ux*np.sin(a)
+    rot31 = uz*ux*w + uy*np.sin(a)
+    rot32 = uz*uy*w - ux*np.sin(a)
+    rot33 = uz*uz*w + np.cos(a)
+
+    n = ran.choice([0.25,0.50,0.75])
+    rotateNum = int(round(n*natoms))
+    atomList = ran.sample(range(natoms),rotateNum)
+    for i in atomList:
+        ele = clus[i].symbol
+        x,y,z = clus[i].position
+        rotX = rot11*x + rot12*y + rot13*z
+        rotY = rot21*x + rot22*y + rot23*z
+        rotZ = rot31*x + rot32*y + rot33*z
+        clus[i].x, clus[i].y, clus[i].z = rotX, rotY, rotZ
+
+    clus = fixOverlap(clus)
     return clus
 
+def twist(parent):
+    '''
+    Twist the cluster
+    '''
+
+    clus = parent
+    CoM(clus)
+    natoms=len(clus)
+    phi = ran.uniform(0,2*np.pi)
+    psi = ran.uniform(0,np.pi)
+    vx = np.cos(phi) * np.sin(psi)
+    vy = np.sin(phi) * np.sin(psi)
+    vz = np.cos(psi)
+    vec = [vx, vy, vz]
+
+    v = np.array(vec)
+    w = []
+
+    for atom in clus:
+        ele = atom.symbol
+        x,y,z = atom.position
+        r = np.array([x,y,z])
+        proj = np.dot(r,v)
+        w.append([proj,ele,x,y,z])
+
+    w.sort()
+
+    for  i  in range(len(clus)):
+        clus[i].symbol = w[i][1]
+        clus[i].position = w[i][2], w[i][3], w[i][4]
+
+    part = int(round(0.3*natoms))
+    nrot = ran.randrange(part,natoms-part)
+    a = ran.uniform(np.pi/6,11*np.pi/6)
+
+    for i in range(nrot):
+        ele = clus[i].symbol
+        x,y,z = clus[i].position
+        rotY = y*np.cos(a) - z*np.sin(a)
+        rotZ = y*np.sin(a) + z*np.cos(a)
+        clus[i].symbol = ele
+        clus[i].x, clus[i].y, clus[i].z = x, rotY, rotZ
+
+    clus = fixOverlap(clus)
+    return clus
 
 def partialInversion(parent):
     """
