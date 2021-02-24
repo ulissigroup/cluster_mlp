@@ -1,6 +1,5 @@
 import random
 from ase.optimize import BFGS
-from ase import Atom
 from deap import base
 from deap import creator
 from deap import tools
@@ -16,10 +15,12 @@ from cluster_mlp.mutations import (
     skin,
     changeCore,
 )
+from cluster_mlp.online_al import run_oal
 import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
 from cluster_mlp.utils import write_to_db, checkBonded, checkSimilar
+from ase.io.trajectory import TrajectoryWriter
 import ase
 import dask.bag as db
 import tempfile
@@ -49,6 +50,11 @@ def minimize_vasp(clus, calc):
     clus.set_calculator(sp(atoms=clus, energy=energy))
     return clus
 
+def minimize_al(clus,calc,eleNames,al_learner_params,train_config):
+    clus.calc = copy.deepcopy(calc)
+    relaxed_cluster = run_oal(clus,calc,eleNames,al_learner_params,train_config)
+    return relaxed_cluster
+    
 def fitness_func(individual):
     """
     Single point energy
@@ -70,20 +76,24 @@ def cluster_GA(
     CXPB=0.5,
     singleTypeCluster=False,
     use_dask=False,
-    use_vasp = False
+    use_vasp = False,
+    use_al = False,
+    al_learner_params = None,
+    train_config = None
 ):
     """
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
     """
 
     def calculate(atoms):
-        if use_vasp == True:
-            atoms_min = minimize_vasp(atoms, calc)
+        if use_al == True:
+            atoms_min = minimize_al(atoms,calc,eleNames,al_learner_params,train_config)
         else:
-            atoms_min = minimize(atoms, calc)
+            if use_vasp == True:
+                atoms_min = minimize_vasp(atoms, calc)
+            else:
+                atoms_min = minimize(atoms, calc)
         return atoms_min
-
-    best_db = ase.db.connect("{}.db".format(filename))
 
     # Creating types
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -323,14 +333,19 @@ def cluster_GA(
             fh.write("{} {} \n".format("Lowest energy is", best_clus.fitness.values[0]))
             fh.write("\n")
         bi.append(best_clus[0])
-        write_to_db(best_db, best_clus[0])
+        if g == 1:
+            writer = TrajectoryWriter(filename+"_best.traj",mode = 'w',atoms = best_clus[0])
+            writer.write()
+        else:
+            writer = TrajectoryWriter(filename+"_best.traj",mode = 'a',atoms = best_clus[0])
+            writer.write()
 
     final_pop_db = ase.db.connect("final_pop_{}.db".format(filename))
     for clus in population:
         write_to_db(final_pop_db, clus[0])
     
     with open(log_file, "a+") as fh:
-        fh.write("Global Minium after {} Generations \n".format(g))
+        fh.write("Global Minimum after {} Generations \n".format(g))
         for atom in best_clus[0]:
             fh.write("{} {:12.8f} {:12.8f} {:12.8f} \n".format(atom.symbol, atom.x, atom.y, atom.z))
     

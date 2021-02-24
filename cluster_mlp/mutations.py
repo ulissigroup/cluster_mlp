@@ -1,8 +1,7 @@
 import numpy as np
 from ase import Atoms
-from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
+from ase.data import atomic_numbers,covalent_radii
 import random as ran
-from ase.constraints import FixAtoms
 from cluster_mlp.utils import CoM, get_data, fixOverlap, addAtoms, sortR0
 
 

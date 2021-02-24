@@ -1,7 +1,6 @@
 from cluster_mlp.deap_ga import cluster_GA
-from cluster_mlp.dask_utils import call_dask
+from ase.calculators.vasp import Vasp2
 from ase.data import atomic_numbers, covalent_radii
-from ase.calculators.emt import EMT
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 
@@ -18,6 +17,7 @@ if __name__ == "__main__":
     log_file = "clus_Cu4.log"
     singleTypeCluster = False
     use_vasp = True
+    use_al = False
     calc = Vasp2(kpar=1,
                 ncore=4,
                 encut=400,
@@ -46,7 +46,6 @@ if __name__ == "__main__":
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
         cluster.scale(10)
-        call_dask(client)
 
     bi, final_cluster = cluster_GA(
         nPool,
@@ -60,5 +59,6 @@ if __name__ == "__main__":
         CXPB,
         singleTypeCluster,
         use_dask,
-        use_vasp
+        use_vasp,
+        use_al
     )

@@ -1,5 +1,4 @@
 from cluster_mlp.deap_ga import cluster_GA
-from cluster_mlp.dask_utils import call_dask
 from ase.data import atomic_numbers, covalent_radii
 from ase.calculators.emt import EMT
 from dask_kubernetes import KubeCluster
@@ -19,13 +18,14 @@ if __name__ == "__main__":
     singleTypeCluster = False
     calc = EMT()
     use_vasp = False
+    use_al = False
+    
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
         cluster.scale(10)
-        call_dask(client)
 
     bi, final_cluster = cluster_GA(
         nPool,
@@ -39,5 +39,6 @@ if __name__ == "__main__":
         CXPB,
         singleTypeCluster,
         use_dask,
-        use_vasp
+        use_vasp,
+        use_al        
     )
