@@ -18,27 +18,29 @@ if __name__ == "__main__":
     singleTypeCluster = False
     use_vasp = True
     use_al = False
-    calc = Vasp2(kpar=1,
-                ncore=4,
-                encut=400,
-                xc='PBE',
-                #gga='PS',
-                kpts=(1,1,1),
-                gamma = True,# Gamma-centered
-                ismear=1,
-                sigma=0.2,
-                ibrion=2,
-                nsw=1000,
-                #lorbit=11,
-                potim=0.2,
-                isif=0,
-                #ediffg=-0.02,
-                #ediff=1e-6,
-                lcharg=False,
-                lwave=False,
-                lreal=False,
-                ispin=2,
-                isym=0)
+    calc = Vasp2(
+        kpar=1,
+        ncore=4,
+        encut=400,
+        xc="PBE",
+        # gga='PS',
+        kpts=(1, 1, 1),
+        gamma=True,  # Gamma-centered
+        ismear=1,
+        sigma=0.2,
+        ibrion=2,
+        nsw=1000,
+        # lorbit=11,
+        potim=0.2,
+        isif=0,
+        # ediffg=-0.02,
+        # ediff=1e-6,
+        lcharg=False,
+        lwave=False,
+        lreal=False,
+        ispin=2,
+        isym=0,
+    )
 
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
@@ -60,5 +62,5 @@ if __name__ == "__main__":
         singleTypeCluster,
         use_dask,
         use_vasp,
-        use_al
+        use_al,
     )

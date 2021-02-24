@@ -7,8 +7,8 @@ from dask.distributed import Client
 
 if __name__ == "__main__":
     use_dask = False
-    eleNames = ["Cu","Al"]
-    eleNums = [3,5]
+    eleNames = ["Cu", "Al"]
+    eleNums = [3, 5]
     nPool = 10
     generations = 50
     CXPB = 0.7
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     calc = EMT()
     use_vasp = False
     use_al = False
-    
+
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
@@ -40,5 +40,5 @@ if __name__ == "__main__":
         singleTypeCluster,
         use_dask,
         use_vasp,
-        use_al        
+        use_al,
     )

@@ -26,7 +26,7 @@ if __name__ == "__main__":
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
         cluster.scale(10)
-    
+
     learner_params = {
         "max_iterations": 2,
         "samples_to_retrain": 1,
@@ -36,8 +36,9 @@ if __name__ == "__main__":
         "fmax_verify_threshold": 0.05,  # eV/AA
         "relative_variance": True,
         "n_ensembles": 3,
-        "use_dask": True,}
-    
+        "use_dask": True,
+    }
+
     config = {
         "model": {"get_forces": True, "num_layers": 3, "num_nodes": 5},
         "optim": {
@@ -48,8 +49,8 @@ if __name__ == "__main__":
             "epochs": 100,
             "optimizer": torch.optim.LBFGS,
             "optimizer_args": {"optimizer__line_search_fn": "strong_wolfe"},
-                }          
-        }
+        },
+    }
 
     bi, final_cluster = cluster_GA(
         nPool,
@@ -66,5 +67,5 @@ if __name__ == "__main__":
         use_vasp,
         use_al,
         learner_params,
-        config
+        config,
     )
