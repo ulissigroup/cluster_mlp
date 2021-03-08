@@ -55,4 +55,4 @@ def run_oal(cluster, parent_calc, elements, al_learner_params, config):
     optim_struc.run(onlinecalc, filename="relaxing")
     relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
 
-    return relaxed_clus
+    return relaxed_clus, onlinecalc.parent_calls

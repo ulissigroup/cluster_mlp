@@ -54,7 +54,11 @@ def minimize_vasp(clus, calc):
 
 def minimize_al(clus, calc, eleNames, al_learner_params, train_config):
     clus.calc = copy.deepcopy(calc)
-    relaxed_cluster = run_oal(clus, calc, eleNames, al_learner_params, train_config)
+    relaxed_cluster, parent_calls = run_oal(
+        clus, calc, eleNames, al_learner_params, train_config
+    )
+    with open("calls.txt", "a+") as f:
+        f.write("Parent Calls for relaxation is {} \n".format(parent_calls))
     return relaxed_cluster
 
 

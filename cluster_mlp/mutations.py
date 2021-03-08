@@ -301,7 +301,7 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
 
         child = []
         eleNames, eleNums, natoms, _, _ = get_data(clus1)
-        cut = int(natoms * (fit1 / (fit1 + fit2)))
+        cut = np.abs(int(natoms * (fit1 / (fit1 + fit2))))
 
         if cut == 0:
             cut = 1

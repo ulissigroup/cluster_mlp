@@ -1,24 +1,46 @@
 from cluster_mlp.deap_ga import cluster_GA
+from ase.calculators.vasp import Vasp2
 from ase.data import atomic_numbers, covalent_radii
-from ase.calculators.emt import EMT
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 
 
 if __name__ == "__main__":
-    use_dask = False
-    eleNames = ["Cu", "Al"]
-    eleNums = [3, 5]
+    use_dask = True
+    eleNames = ["Cu"]
+    eleNums = [4]
     nPool = 10
-    generations = 50
-    CXPB = 0.5
+    generations = 2
+    CXPB = 0.7
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
     filename = "clus_Cu4"  # For saving the best cluster at every generation
     log_file = "clus_Cu4.log"
-    singleTypeCluster = False
-    calc = EMT()
-    use_vasp = False
+    singleTypeCluster = True
+    use_vasp = True
     use_al = False
+    calc = Vasp2(
+        kpar=1,
+        ncore=4,
+        encut=400,
+        xc="PBE",
+        # gga='PS',
+        kpts=(1, 1, 1),
+        gamma=True,  # Gamma-centered
+        ismear=1,
+        sigma=0.2,
+        ibrion=2,
+        nsw=1000,
+        # lorbit=11,
+        potim=0.2,
+        isif=0,
+        # ediffg=-0.02,
+        # ediff=1e-6,
+        lcharg=False,
+        lwave=False,
+        lreal=False,
+        ispin=2,
+        isym=0,
+    )
 
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
