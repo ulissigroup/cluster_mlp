@@ -53,10 +53,24 @@ def minimize_vasp(clus, calc):
 
 
 def minimize_al(clus, calc, eleNames, al_learner_params, train_config):
+    with open("al_relaxation.out", "a+") as fh:
+        fh.write(" Cluster  before Al relaxation \n")
+        for atom in clus:
+            fh.write(
+                "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
+                    atom.symbol, atom.x, atom.y, atom.z
+
     clus.calc = copy.deepcopy(calc)
     relaxed_cluster, parent_calls = run_oal(
         clus, calc, eleNames, al_learner_params, train_config
     )
+    with open("al_relaxation.out", "a+") as fh:
+        fh.write(" cluster Geom after Al relaxation \n")
+        for atom in relaxed_cluster:
+            fh.write(
+                "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
+                    atom.symbol, atom.x, atom.y, atom.z
+        fh.write(" \n")
     with open("calls.txt", "a+") as f:
         f.write("Parent Calls for relaxation is {} \n".format(parent_calls))
     return relaxed_cluster
