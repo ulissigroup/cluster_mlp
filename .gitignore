@@ -24,6 +24,7 @@ cluster_mlp.egg-info
 *.dirlock
 *.lock
 *.log
+*.out
 
 test_figs/
 
