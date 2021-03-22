@@ -6,7 +6,7 @@ from al_mlp.atomistic_methods import Relaxation
 import os
 
 
-def run_oal(cluster, parent_calc, elements, al_learner_params, config):
+def run_onlineal(cluster, parent_calc, elements, al_learner_params, config):
 
     Gs = {
         "default": {

@@ -307,6 +307,8 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
             cut = 1
         elif cut == natoms:
             cut = natoms - 1
+        elif cut > natoms:
+            cut = natoms - 1
 
         for i in range(cut):
             child.append(clus1[i])

@@ -15,7 +15,8 @@ from cluster_mlp.mutations import (
     skin,
     changeCore,
 )
-from cluster_mlp.online_al import run_oal
+from cluster_mlp.online_al import run_onlineal
+from cluster_mlp.offline_al import run_offlineal
 import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
@@ -24,6 +25,7 @@ from ase.io.trajectory import TrajectoryWriter
 import ase
 import dask.bag as db
 import tempfile
+import sys
 
 
 def minimize(clus, calc):
@@ -52,7 +54,7 @@ def minimize_vasp(clus, calc):
     return clus
 
 
-def minimize_al(clus, calc, eleNames, al_learner_params, train_config):
+def minimize_al(clus, calc, eleNames, al_learner_params, train_config,al_method):
     '''The file generated here should go into the dask workerspace'''
     
     with open("al_relaxationdask.out", "a+") as fh:
@@ -63,9 +65,17 @@ def minimize_al(clus, calc, eleNames, al_learner_params, train_config):
                     atom.symbol, atom.x, atom.y, atom.z))
 
     clus.calc = copy.deepcopy(calc)
-    relaxed_cluster, parent_calls = run_oal(
-        clus, calc, eleNames, al_learner_params, train_config
-    )
+    if al_method == 'online':
+        relaxed_cluster, parent_calls = run_onlineal(
+            clus, calc, eleNames, al_learner_params, train_config
+        )
+    elif al_method == 'offline':
+        relaxed_cluster, parent_calls = run_offlineal(
+            clus, calc, eleNames, al_learner_params, train_config
+        )
+    else:
+        sys.exit("Incorrect values for al_method, please use only offline or online")
+        
     with open("al_relaxationdask.out", "a+") as fh:
         fh.write(" cluster Geom after Al relaxation \n")
         for atom in relaxed_cluster:
@@ -100,7 +110,7 @@ def cluster_GA(
     singleTypeCluster=False,
     use_dask=False,
     use_vasp=False,
-    use_al=False,
+    al_method=None,
     al_learner_params=None,
     train_config=None,
 ):
@@ -109,9 +119,9 @@ def cluster_GA(
     """
 
     def calculate(atoms):
-        if use_al == True:
+        if al_method is not None:
             atoms_min = minimize_al(
-                atoms, calc, eleNames, al_learner_params, train_config
+                atoms, calc, eleNames, al_learner_params, train_config,al_method
             )
         else:
             if use_vasp == True:
@@ -119,7 +129,10 @@ def cluster_GA(
             else:
                 atoms_min = minimize(atoms, calc)
         return atoms_min
-
+    
+    if al_method is not None:
+        al_method = al_method.lower()
+    
     # Creating types
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)

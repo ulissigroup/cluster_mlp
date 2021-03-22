@@ -18,7 +18,6 @@ if __name__ == "__main__":
     singleTypeCluster = False
     calc = EMT()
     use_vasp = False
-    use_al = False
 
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
@@ -40,5 +39,4 @@ if __name__ == "__main__":
         singleTypeCluster,
         use_dask,
         use_vasp,
-        use_al,
     )
