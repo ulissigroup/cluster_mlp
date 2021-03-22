@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     learner_params = {
         "max_iterations": 10,
-        "force_tolerance":0.01,
+        "force_tolerance": 0.01,
         "samples_to_retrain": 2,
         "filename": "relax_example",
         "file_dir": "./",

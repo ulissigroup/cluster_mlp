@@ -23,7 +23,9 @@ def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
 
     images = [cluster]
 
-    al_learner_params["atomistic_method"] = Relaxation(cluster, BFGS, fmax=0.01, steps=100)    
+    al_learner_params["atomistic_method"] = Relaxation(
+        cluster, BFGS, fmax=0.01, steps=100
+    )
 
     config["dataset"] = {
         "raw_data": images,
@@ -31,7 +33,7 @@ def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
         "elements": elements,
         "fp_params": Gs,
         "save_fps": False,
-        "scaling": {"type": "normalize","range":(-1,1)},
+        "scaling": {"type": "normalize", "range": (-1, 1)},
     }
 
     config["cmd"] = {
@@ -45,22 +47,18 @@ def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
     }
 
     trainer = AtomsTrainer(config)
-    base_calc = MultiMorse(images,Gs["default"]["cutoff"],combo="mean")
+    base_calc = MultiMorse(images, Gs["default"]["cutoff"], combo="mean")
     offlinecalc = FmaxLearner(
-        al_learner_params,
-        trainer,
-        images,
-        parent_calc,
-        base_calc
+        al_learner_params, trainer, images, parent_calc, base_calc
     )
     if os.path.exists("queried_images.db"):
         os.remove("queried_images.db")
-        
+
     offlinecalc.learn()
     al_iterations = offlinecalc.iterations - 1
-    
+
     file_path = al_learner_params["file_dir"] + al_learner_params["filename"]
-    final_ml_traj = read("{}_iter_{}.traj".format(file_path,al_iterations),":")
+    final_ml_traj = read("{}_iter_{}.traj".format(file_path, al_iterations), ":")
     relaxed_clus = final_ml_traj[-1]
 
     return relaxed_clus, offlinecalc.parent_calls

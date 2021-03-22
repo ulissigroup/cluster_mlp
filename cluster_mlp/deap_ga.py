@@ -54,37 +54,41 @@ def minimize_vasp(clus, calc):
     return clus
 
 
-def minimize_al(clus, calc, eleNames, al_learner_params, train_config,al_method):
-    '''The file generated here should go into the dask workerspace'''
-    
+def minimize_al(clus, calc, eleNames, al_learner_params, train_config, al_method):
+    """The file generated here should go into the dask workerspace"""
+
     with open("al_relaxationdask.out", "a+") as fh:
         fh.write(" Cluster  before Al relaxation \n")
         for atom in clus:
             fh.write(
                 "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                    atom.symbol, atom.x, atom.y, atom.z))
+                    atom.symbol, atom.x, atom.y, atom.z
+                )
+            )
 
     clus.calc = copy.deepcopy(calc)
-    if al_method == 'online':
+    if al_method == "online":
         relaxed_cluster, parent_calls = run_onlineal(
             clus, calc, eleNames, al_learner_params, train_config
         )
-    elif al_method == 'offline':
+    elif al_method == "offline":
         relaxed_cluster, parent_calls = run_offlineal(
             clus, calc, eleNames, al_learner_params, train_config
         )
     else:
         sys.exit("Incorrect values for al_method, please use only offline or online")
-        
+
     with open("al_relaxationdask.out", "a+") as fh:
         fh.write(" cluster Geom after Al relaxation \n")
         for atom in relaxed_cluster:
             fh.write(
                 "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                    atom.symbol, atom.x, atom.y, atom.z))
+                    atom.symbol, atom.x, atom.y, atom.z
+                )
+            )
         fh.write(" \n")
-    '''with open("calls.txt", "a+") as f:
-        f.write("Parent Calls for relaxation is {} \n".format(parent_calls))''' # Not working for now
+    """with open("calls.txt", "a+") as f:
+        f.write("Parent Calls for relaxation is {} \n".format(parent_calls))"""  # Not working for now
     return relaxed_cluster
 
 
@@ -121,7 +125,7 @@ def cluster_GA(
     def calculate(atoms):
         if al_method is not None:
             atoms_min = minimize_al(
-                atoms, calc, eleNames, al_learner_params, train_config,al_method
+                atoms, calc, eleNames, al_learner_params, train_config, al_method
             )
         else:
             if use_vasp == True:
@@ -129,10 +133,10 @@ def cluster_GA(
             else:
                 atoms_min = minimize(atoms, calc)
         return atoms_min
-    
+
     if al_method is not None:
         al_method = al_method.lower()
-    
+
     # Creating types
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -166,16 +170,18 @@ def cluster_GA(
     pop_list = []
     for individual in population:
         pop_list.append(individual[0])
-    '''PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED'''
+    """PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED"""
     with open("init_pop_before_relax_positions.out", "a+") as fh:
         fh.write(" Cluster  before AL relaxation \n")
         for c in pop_list:
             for atom in c:
                 fh.write(
                     "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                        atom.symbol, atom.x, atom.y, atom.z))
+                        atom.symbol, atom.x, atom.y, atom.z
+                    )
+                )
             fh.write("\n")
-    
+
     if use_dask == True:
         # distribute and run the calculations
         clus_bag = db.from_sequence(pop_list, partition_size=1)
@@ -189,17 +195,19 @@ def cluster_GA(
         p[0] = lst_clus_min[i]
     # Fitnesses (or Energy) values of the initial random population
     fitnesses = list(map(toolbox.evaluate, population))
-    
-    '''PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED'''
+
+    """PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED"""
     with open("init_pop_after_relax_positions.out", "a+") as fh:
         fh.write(" Cluster after AL relaxation \n")
         for c in population:
             for atom in c[0]:
                 fh.write(
                     "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                        atom.symbol, atom.x, atom.y, atom.z))
+                        atom.symbol, atom.x, atom.y, atom.z
+                    )
+                )
             fh.write("\n")
-                
+
     with open(log_file, "a+") as fh:
         fh.write("Energies (fitnesses) of the initial pool" "\n")
         for value in fitnesses:
@@ -334,7 +342,7 @@ def cluster_GA(
         mut_new_lst = []
         for mut in cm_pop:
             mut_new_lst.append(mut[0])
-        '''PLACEHOLDER FOR DEBUGGIN REMOVE WHEN CORRECTED'''
+        """PLACEHOLDER FOR DEBUGGIN REMOVE WHEN CORRECTED"""
         with open("pop_after_mutations_before_relax_positions.out", "a+") as fh:
             fh.write("{} {} \n".format("Generation", g))
             fh.write(" Cluster before AL relaxation \n")
@@ -342,9 +350,11 @@ def cluster_GA(
                 for atom in c[0]:
                     fh.write(
                         "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                            atom.symbol, atom.x, atom.y, atom.z))
+                            atom.symbol, atom.x, atom.y, atom.z
+                        )
+                    )
                 fh.write("\n")
-        
+
         # DASK Parallel relaxation of the crossover child/mutatted clusters
         if use_dask == True:
             mut_bag = db.from_sequence(mut_new_lst, partition_size=1)
@@ -361,7 +371,7 @@ def cluster_GA(
 
         for ind, fit in zip(cm_pop, fitnesses_mut):
             ind.fitness.values = fit
-        '''PLACEHOLDER FOR DEBUGGING'''
+        """PLACEHOLDER FOR DEBUGGING"""
         with open("pop_after_mutations_after_relax_positions.out", "a+") as fh:
             fh.write("{} {} \n".format("Generation", g))
             fh.write(" Cluster after AL relaxation \n")
@@ -369,7 +379,9 @@ def cluster_GA(
                 for atom in c[0]:
                     fh.write(
                         "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                            atom.symbol, atom.x, atom.y, atom.z))
+                            atom.symbol, atom.x, atom.y, atom.z
+                        )
+                    )
                 fh.write("\n")
 
         new_population = copy.deepcopy(population)
@@ -385,7 +397,7 @@ def cluster_GA(
                     new_population.append(cmut1)
                 else:
                     pass
-                
+
         fitnesses_pool = list(map(toolbox.evaluate, new_population))
 
         with open(log_file, "a+") as fh:
