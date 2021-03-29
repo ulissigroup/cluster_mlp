@@ -5,6 +5,7 @@ from ase.optimize import BFGS
 from al_mlp.atomistic_methods import Relaxation
 from al_mlp.base_calcs.morse import MultiMorse
 from ase.io import read
+from ase.calculators.emt import EMT
 import os
 
 
@@ -47,7 +48,8 @@ def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
     }
 
     trainer = AtomsTrainer(config)
-    base_calc = MultiMorse(images, Gs["default"]["cutoff"], combo="mean")
+    #base_calc = MultiMorse(images, Gs["default"]["cutoff"], combo="mean")
+    base_calc = EMT()
     offlinecalc = FmaxLearner(
         al_learner_params, trainer, images, parent_calc, base_calc
     )
