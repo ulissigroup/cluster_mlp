@@ -68,8 +68,8 @@ def fixOverlap(clus_to_fix):
             dmin = (
                 covalent_radii[clus_to_fix[i].number]
                 + covalent_radii[clus_to_fix[j].number]
-            ) * 0.7
-            if distance < 0.8 * dmin:
+            ) 
+            if distance < 0.9 * dmin:
                 a = np.dot(r2, r2)
                 b = np.dot(r1, r2)
                 c = np.dot(r1, r1) - dmin ** 2
