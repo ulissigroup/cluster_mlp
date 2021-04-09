@@ -10,12 +10,12 @@ if __name__ == "__main__":
     eleNames = ["Cu"]
     eleNums = [4]
     nPool = 10
-    generations = 2
-    CXPB = 0.7
+    generations = 50
+    CXPB = 0.5
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
     filename = "clus_Cu4"  # For saving the best cluster at every generation
     log_file = "clus_Cu4.log"
-    singleTypeCluster = True
+    singleTypeCluster = False
     use_vasp = True
     use_al = False
     calc = Vasp2(

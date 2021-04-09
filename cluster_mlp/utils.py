@@ -3,7 +3,8 @@ import random as ran
 from ase import Atoms
 from ase.data import atomic_numbers, covalent_radii
 from ase.build import sort
-
+from ase.calculators.emt import EMT
+from ase.optimize import BFGS
 
 def write_to_db(database, image):
     image.get_potential_energy()
@@ -56,8 +57,6 @@ def fixOverlap(clus_to_fix):
     Support function to fix any overlaps that may arise due to the mutations by radially moving the atoms that have overlap
     """
     natoms = len(clus_to_fix)
-    # com = clus_to_fix.get_center_of_mass()
-    # clus_to_fix.center(about = com)
     CoM(clus_to_fix)
     for i in range(natoms):
         for j in range(i):
@@ -80,6 +79,9 @@ def fixOverlap(clus_to_fix):
     clus_to_fix.center(vacuum=9)
     clus_to_fix_sorted = sort(clus_to_fix)
     clus_to_fix_sorted.pbc = (True, True, True)
+    clus_to_fix_sorted.calc = EMT()
+    dyn = BFGS(clus_to_fix_sorted)
+    dyn.run(fmax=0.05, steps=1000)
     return clus_to_fix_sorted
 
 
@@ -98,7 +100,6 @@ def addAtoms(clusm, eleNames, eleNums, eleRadii):
         )
         coord_xyz.append((x, y, z))
 
-    # eleNames, eleNums,natoms,stride,eleRadii = get_data(clusm)
 
     for i in range(len(eleNames)):
         ele = eleNames[i]
@@ -131,9 +132,9 @@ def addAtoms(clusm, eleNames, eleNums, eleRadii):
             coord_xyz.append(atom)
             eleList.append(ele)
             clusm = Atoms(eleList, coord_xyz)
-            clusm = fixOverlap(clusm)
+            #clusm = fixOverlap(clusm)
             n += 1
-    # print(clusm)
+    
     return clusm
 
 

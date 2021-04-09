@@ -1,4 +1,4 @@
-from cluster_mlp.utils import addAtoms
+from cluster_mlp.utils import addAtoms, fixoverlap
 from ase import Atoms
 
 
@@ -10,4 +10,5 @@ def fillPool(eleNames, eleNums, eleRadii, calc):
     d = (eleRadii[0] + eleRadii[-1]) / 2
     clusm = Atoms(ele_initial, [(-d, 0.0, 0.0), (d, 0.0, 0.0)])
     clus = addAtoms(clusm, eleNames, eleNums, eleRadii)
+    clus = fixoverlap(clus)
     return clus

@@ -1,25 +1,45 @@
 from cluster_mlp.deap_ga import cluster_GA
 from ase.data import atomic_numbers, covalent_radii
 from ase.calculators.emt import EMT
+from ase.calculators.vasp import Vasp2
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 import torch
 
 
 if __name__ == "__main__":
-    use_dask = False
+    use_dask = True
     eleNames = ["Cu"]
-    eleNums = [5]
-    nPool = 5
-    generations = 2
-    CXPB = 0.7
+    eleNums = [10]
+    nPool = 10
+    generations = 20
+    CXPB = 0.5
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
-    filename = "clus_Cu5"  # For saving the best cluster at every generation
-    log_file = "clus_Cu5.log"
+    filename = "clus_Cu10"  # For saving the best cluster at every generation
+    log_file = "clus_Cu10.log"
     singleTypeCluster = True
-    calc = EMT()
-    use_vasp = False
-    use_al = True
+    #calc = EMT()
+    calc = Vasp2(kpar=1,
+                ncore=4,
+                encut=400,
+                xc='PBE',
+                kpts=(1,1,1),
+                gamma = True,# Gamma-centered
+                ismear=1,
+                sigma=0.2,
+                ibrion=-1,
+                nsw=0,
+                potim=0.2,
+                isif=0,
+                #ediffg=-0.02,
+                #ediff=1e-6,
+                lcharg=False,
+                lwave=False,
+                lreal=False,
+                ispin=2,
+                isym=0)
+    use_vasp = True
+    al_method = "offline"
     if use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
@@ -28,25 +48,23 @@ if __name__ == "__main__":
         cluster.scale(10)
 
     learner_params = {
-        "max_iterations": 2,
-        "samples_to_retrain": 1,
+        "max_iterations": 10,
+        "force_tolerance": 0.01,
+        "samples_to_retrain": 2,
         "filename": "relax_example",
         "file_dir": "./",
-        "uncertain_tol": 5.0,
-        "fmax_verify_threshold": 0.05,  # eV/AA
-        "relative_variance": True,
-        "n_ensembles": 3,
+        "max_evA": 0.07,  # eV/AA
         "use_dask": True,
     }
 
     config = {
-        "model": {"get_forces": True, "num_layers": 3, "num_nodes": 5},
+        "model": {"get_forces": True, "num_layers": 3, "num_nodes": 20},
         "optim": {
             "device": "cpu",
-            "force_coefficient": 4.0,
-            "lr": 1,
+            "force_coefficient": 30.0,
+            "lr": 0.01,
             "batch_size": 10,
-            "epochs": 100,
+            "epochs": 200,
             "optimizer": torch.optim.LBFGS,
             "optimizer_args": {"optimizer__line_search_fn": "strong_wolfe"},
         },
@@ -65,7 +83,7 @@ if __name__ == "__main__":
         singleTypeCluster,
         use_dask,
         use_vasp,
-        use_al,
+        al_method,
         learner_params,
         config,
     )
