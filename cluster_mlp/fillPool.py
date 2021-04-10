@@ -1,4 +1,4 @@
-from cluster_mlp.utils import addAtoms, fixoverlap
+from cluster_mlp.utils import addAtoms, fixOverlap
 from ase import Atoms
 
 
