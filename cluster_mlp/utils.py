@@ -6,6 +6,7 @@ from ase.build import sort
 from ase.calculators.emt import EMT
 from ase.optimize import BFGS
 
+
 def write_to_db(database, image):
     image.get_potential_energy()
     database.write(image, relaxed=True)
@@ -67,7 +68,7 @@ def fixOverlap(clus_to_fix):
             dmin = (
                 covalent_radii[clus_to_fix[i].number]
                 + covalent_radii[clus_to_fix[j].number]
-            )*0.9 
+            ) * 0.9
             if distance < 0.9 * dmin:
                 a = np.dot(r2, r2)
                 b = np.dot(r1, r2)
@@ -100,7 +101,6 @@ def addAtoms(clusm, eleNames, eleNums, eleRadii):
         )
         coord_xyz.append((x, y, z))
 
-
     for i in range(len(eleNames)):
         ele = eleNames[i]
         n = 0
@@ -132,9 +132,9 @@ def addAtoms(clusm, eleNames, eleNums, eleRadii):
             coord_xyz.append(atom)
             eleList.append(ele)
             clusm = Atoms(eleList, coord_xyz)
-            #clusm = fixOverlap(clusm)
+            # clusm = fixOverlap(clusm)
             n += 1
-    
+
     return clusm
 
 
