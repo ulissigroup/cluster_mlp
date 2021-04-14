@@ -243,6 +243,7 @@ def skin(parent):
         core_ele.append(ele)
     core = Atoms(core_ele, core_pos)
     clus = addAtoms(core, eleNames, eleNums, eleRadii)
+    clus = fixOverlap(clus)
 
     return clus
 
@@ -274,6 +275,7 @@ def changeCore(parent):
         clus = sortR0(clus, R0)
         del clus[iout]
         clus = addAtoms(clus, eleNames, eleNums, eleRadii)
+        clus = fixOverlap(clus)
 
     return clus
 
