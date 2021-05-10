@@ -1,5 +1,5 @@
 import random
-from ase.optimize import BFGS
+from ase.optimize import LBFGS
 from deap import base
 from deap import creator
 from deap import tools
@@ -35,7 +35,7 @@ def minimize(clus, calc):
     clus.calc = copy.deepcopy(calc)
     with tempfile.TemporaryDirectory() as tmp_dir:
         clus.get_calculator().set(directory=tmp_dir)
-    dyn = BFGS(clus, logfile=None)
+    dyn = LBFGS(clus, logfile=None)
     dyn.run(fmax=0.05, steps=1000)
     energy = clus.get_potential_energy()
     clus.set_calculator(sp(atoms=clus, energy=energy))
