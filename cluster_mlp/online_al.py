@@ -6,7 +6,7 @@ from al_mlp.atomistic_methods import Relaxation
 import os
 
 
-def run_onlineal(cluster, parent_calc, elements, al_learner_params, config):
+def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
 
     Gs = {
         "default": {
@@ -51,7 +51,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config):
     if os.path.exists("relaxing.traj"):
         os.remove("relaxing.traj")
 
-    optim_struc = Relaxation(cluster, BFGS, fmax=0.01, steps=100)
+    optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
     optim_struc.run(onlinecalc, filename="relaxing")
     relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
 

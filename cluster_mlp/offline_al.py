@@ -1,7 +1,6 @@
 import numpy as np
 from al_mlp.preset_learners.fmax_learner import FmaxLearner
 from amptorch.trainer import AtomsTrainer
-from ase.optimize import BFGS
 from al_mlp.atomistic_methods import Relaxation
 from al_mlp.base_calcs.morse import MultiMorse
 from ase.io import read
@@ -9,7 +8,7 @@ from ase.calculators.emt import EMT
 import os
 
 
-def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
+def run_offlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
 
     Gs = {
         "default": {
@@ -25,7 +24,7 @@ def run_offlineal(cluster, parent_calc, elements, al_learner_params, config):
     images = [cluster]
 
     al_learner_params["atomistic_method"] = Relaxation(
-        cluster, BFGS, fmax=0.01, steps=100
+        cluster, optimizer, fmax=0.01, steps=100
     )
 
     config["dataset"] = {

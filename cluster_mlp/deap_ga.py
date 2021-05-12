@@ -1,5 +1,4 @@
 import random
-from ase.optimize import LBFGS
 from deap import base
 from deap import creator
 from deap import tools
@@ -27,15 +26,14 @@ import dask.bag as db
 import tempfile
 import sys
 
-
-def minimize(clus, calc):
+def minimize(clus, calc,optimizer):
     """
     Cluster relaxation
     """
     clus.calc = copy.deepcopy(calc)
     with tempfile.TemporaryDirectory() as tmp_dir:
         clus.get_calculator().set(directory=tmp_dir)
-    dyn = LBFGS(clus, logfile=None)
+    dyn = optimizer(clus, logfile=None)
     dyn.run(fmax=0.05, steps=1000)
     energy = clus.get_potential_energy()
     clus.set_calculator(sp(atoms=clus, energy=energy))
@@ -54,7 +52,7 @@ def minimize_vasp(clus, calc):
     return clus
 
 
-def minimize_al(clus, calc, eleNames, al_learner_params, train_config, al_method):
+def minimize_al(clus, calc, eleNames, al_learner_params, train_config,optimizer, al_method):
     """The file generated here should go into the dask workerspace"""
 
     with open("al_relaxationdask.out", "a+") as fh:
@@ -69,11 +67,11 @@ def minimize_al(clus, calc, eleNames, al_learner_params, train_config, al_method
     clus.calc = copy.deepcopy(calc)
     if al_method == "online":
         relaxed_cluster, parent_calls = run_onlineal(
-            clus, calc, eleNames, al_learner_params, train_config
+            clus, calc, eleNames, al_learner_params, train_config,optimizer
         )
     elif al_method == "offline":
         relaxed_cluster, parent_calls = run_offlineal(
-            clus, calc, eleNames, al_learner_params, train_config
+            clus, calc, eleNames, al_learner_params, train_config,optimizer
         )
     else:
         sys.exit("Incorrect values for al_method, please use only offline or online")
@@ -117,6 +115,7 @@ def cluster_GA(
     al_method=None,
     al_learner_params=None,
     train_config=None,
+    optimizer = None
 ):
     """
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
@@ -125,13 +124,13 @@ def cluster_GA(
     def calculate(atoms):
         if al_method is not None:
             atoms_min = minimize_al(
-                atoms, calc, eleNames, al_learner_params, train_config, al_method
+                atoms, calc, eleNames, al_learner_params, train_config,optimizer, al_method
             )
         else:
             if use_vasp == True:
                 atoms_min = minimize_vasp(atoms, calc)
             else:
-                atoms_min = minimize(atoms, calc)
+                atoms_min = minimize(atoms, calc,optimizer)
         return atoms_min
 
     if al_method is not None:

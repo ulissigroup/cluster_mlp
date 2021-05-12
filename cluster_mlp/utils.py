@@ -81,7 +81,7 @@ def fixOverlap(clus_to_fix):
     clus_to_fix_sorted = sort(clus_to_fix)
     clus_to_fix_sorted.pbc = (True, True, True)
     clus_to_fix_sorted.calc = EMT()
-    dyn = BFGS(clus_to_fix_sorted)
+    dyn = BFGS(clus_to_fix_sorted, logfile = None)
     dyn.run(fmax=0.05, steps=1000)
     return clus_to_fix_sorted
 

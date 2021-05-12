@@ -1,11 +1,10 @@
 from cluster_mlp.deap_ga import cluster_GA
 from ase.data import atomic_numbers, covalent_radii
 from ase.calculators.emt import EMT
-from ase.calculators.vasp import Vasp2
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 import torch
-
+from ase.optimize import BFGS
 
 if __name__ == "__main__":
     use_dask = True
@@ -36,7 +35,7 @@ if __name__ == "__main__":
         "fmax_verify_threshold": 0.05,  # eV/AA
         "relative_variance": True,
         "n_ensembles": 3,
-        "use_dask": True,
+        "use_dask": False,
     }
 
     config = {
@@ -68,4 +67,5 @@ if __name__ == "__main__":
         al_method,
         learner_params,
         config,
+        optimizer = BFGS #Set ase optimizer
     )
