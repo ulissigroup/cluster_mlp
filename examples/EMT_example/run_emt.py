@@ -39,5 +39,5 @@ if __name__ == "__main__":
         singleTypeCluster,
         use_dask,
         use_vasp,
-        optimizer = BFGS #Set ase optimizer
+        optimizer=BFGS,  # Set ase optimizer
     )

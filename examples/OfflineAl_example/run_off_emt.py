@@ -66,5 +66,5 @@ if __name__ == "__main__":
         al_method,
         learner_params,
         config,
-        optimizer = FIRE #Set ase optimizer
+        optimizer=FIRE,  # Set ase optimizer
     )

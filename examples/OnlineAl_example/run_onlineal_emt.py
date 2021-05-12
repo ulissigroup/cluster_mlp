@@ -67,5 +67,5 @@ if __name__ == "__main__":
         al_method,
         learner_params,
         config,
-        optimizer = BFGS #Set ase optimizer
+        optimizer=BFGS,  # Set ase optimizer
     )
