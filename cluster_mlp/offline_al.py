@@ -1,5 +1,5 @@
 import numpy as np
-from al_mlp.preset_learners.fmax_learner import FmaxLearner
+from al_mlp.preset_learners.offline_learner.fmax_learner import FmaxLearner
 from amptorch.trainer import AtomsTrainer
 from al_mlp.atomistic_methods import Relaxation
 from al_mlp.base_calcs.morse import MultiMorse
