@@ -1,53 +1,24 @@
-import numpy as np
 from al_mlp.online_learner.online_learner import OnlineLearner
-from amptorch.trainer import AtomsTrainer
-from ase.optimize import BFGS
+from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
 from al_mlp.atomistic_methods import Relaxation
 import os
 
 
 def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
 
-    Gs = {
-        "default": {
-            "G2": {
-                "etas": np.logspace(np.log10(0.05), np.log10(5.0), num=4),
-                "rs_s": [0],
-            },
-            "G4": {"etas": [0.005], "zetas": [1.0, 4.0], "gammas": [1.0, -1.0]},
-            "cutoff": 6,
-        },
-    }
-
     images = [cluster]
 
-    config["dataset"] = {
-        "raw_data": images,
-        "val_split": 0,
-        "elements": elements,
-        "fp_params": Gs,
-        "save_fps": False,
-        "scaling": {"type": "standardize"},
-    }
+    flare_params = config
 
-    config["cmd"] = {
-        "debug": False,
-        "run_dir": "./",
-        "seed": 1,
-        "identifier": "cluster",
-        "verbose": False,
-        # "logger": True,
-        "single-threaded": True,
-    }
-
-    trainer = AtomsTrainer(config)
+    ml_potential = FlarePPCalc(flare_params, images)
 
     onlinecalc = OnlineLearner(
         al_learner_params,
-        trainer,
         images,
+        ml_potential,
         parent_calc,
     )
+
     if os.path.exists("relaxing.traj"):
         os.remove("relaxing.traj")
 

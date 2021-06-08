@@ -3,15 +3,14 @@ from ase.data import atomic_numbers, covalent_radii
 from ase.calculators.emt import EMT
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
-import torch
 from ase.optimize import BFGS
 
 if __name__ == "__main__":
-    use_dask = True
-    eleNames = ["Ni"]
+    cluster_use_dask = False
+    eleNames = ["Cu"]
     eleNums = [10]
-    nPool = 10
-    generations = 20
+    nPool = 5
+    generations = 10
     CXPB = 0.5
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
     filename = "clus_Ni10"  # For saving the best cluster at every generation
@@ -20,35 +19,38 @@ if __name__ == "__main__":
     calc = EMT()
     use_vasp = True
     al_method = "online"
-    if use_dask == True:
+
+    if cluster_use_dask == True:
         # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
         cluster.scale(10)
+
     learner_params = {
-        "max_iterations": 40,
+        "max_iterations": 3,
         "samples_to_retrain": 1,
         "filename": "relax_example",
         "file_dir": "./",
-        "uncertain_tol": 0.5,
+        "stat_uncertain_tol": 0.1,
+        "dyn_uncertain_tol": 1.2,
         "fmax_verify_threshold": 0.05,  # eV/AA
         "relative_variance": True,
-        "n_ensembles": 3,
+        "n_ensembles": 10,
         "use_dask": False,
     }
 
     config = {
-        "model": {"get_forces": True, "num_layers": 3, "num_nodes": 20},
-        "optim": {
-            "device": "cpu",
-            "force_coefficient": 4.0,
-            "lr": 1e-3,
-            "batch_size": 10,
-            "epochs": 200,
-            "optimizer": torch.optim.LBFGS,
-            "optimizer_args": {"optimizer__line_search_fn": "strong_wolfe"},
-        },
+        "sigma": 1.0,
+        "power": 2,
+        "cutoff_function": "quadratic",
+        "cutoff": 3.0,
+        "radial_basis": "chebyshev",
+        "cutoff_hyps": [],
+        "sigma_e": 1.0,
+        "sigma_f": 0.1,
+        "sigma_s": 0.0,
+        "max_iterations": 50,
     }
 
     bi, final_cluster = cluster_GA(
@@ -62,7 +64,7 @@ if __name__ == "__main__":
         log_file,
         CXPB,
         singleTypeCluster,
-        use_dask,
+        cluster_use_dask,
         use_vasp,
         al_method,
         learner_params,
