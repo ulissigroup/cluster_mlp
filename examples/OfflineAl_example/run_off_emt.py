@@ -4,7 +4,13 @@ from ase.calculators.emt import EMT
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 import torch
-from ase.optimize import FIRE
+from ase.optimize import BFGS
+
+"""
+Example code to run 5 generations of the Genetic algorithm for a Cu5 cluster using the
+offline active learning framework and the ASE pure python EMT calculator
+For more info on parameters : https://github.com/ulissigroup/al_mlp
+"""
 
 if __name__ == "__main__":
     use_dask = False
@@ -14,18 +20,18 @@ if __name__ == "__main__":
     generations = 5
     CXPB = 0.5
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
-    filename = "clus_Cu10"  # For saving the best cluster at every generation
-    log_file = "clus_Cu10.log"
+    filename = "clus_Cu5"  # For saving the best cluster at every generation
+    log_file = "clus_Cu5.log"
     singleTypeCluster = True
     calc = EMT()
     use_vasp = False
     al_method = "offline"
     if use_dask == True:
-        # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
+        # Set up the dask run using the worker-spec file based on the computing cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
-        cluster.scale(10)
+        cluster.scale(10)  # Since 10 clusters in the pool
 
     learner_params = {
         "max_iterations": 2,
@@ -66,5 +72,5 @@ if __name__ == "__main__":
         al_method,
         learner_params,
         config,
-        optimizer=FIRE,  # Set ase optimizer
+        optimizer=BFGS,  # Set ase optimizer
     )

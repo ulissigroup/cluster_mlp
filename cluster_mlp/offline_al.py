@@ -7,6 +7,8 @@ from ase.io import read
 from ase.calculators.emt import EMT
 import os
 
+# Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
+
 
 def run_offlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
 

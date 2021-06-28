@@ -14,8 +14,6 @@ from cluster_mlp.mutations import (
     skin,
     changeCore,
 )
-from cluster_mlp.online_al import run_onlineal
-from cluster_mlp.offline_al import run_offlineal
 import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
@@ -24,14 +22,17 @@ from ase.io.trajectory import TrajectoryWriter
 import ase
 import dask.bag as db
 import tempfile
+from ase.optimize import BFGS
 import sys
 
 
 def minimize(clus, calc, optimizer):
     """
-    Cluster relaxation
+    Cluster relaxation using an ase optimizer
+    Refer https://wiki.fysik.dtu.dk/ase/ase/optimize.html for a list of possible optimizers
+    Recommended optimizer with VASP is GPMin
     """
-    clus.calc = copy.deepcopy(calc)
+    clus.calc = calc
     with tempfile.TemporaryDirectory() as tmp_dir:
         clus.get_calculator().set(directory=tmp_dir)
     dyn = optimizer(clus, logfile=None)
@@ -43,9 +44,11 @@ def minimize(clus, calc, optimizer):
 
 def minimize_vasp(clus, calc):
     """
-    Cluster relaxation
+    Cluster relaxation function for using the inbuilt VASP optimizer
+    All files related to the vasp run (INCAR,OUTCAR etc)
+    are stored in a temporary directory
     """
-    clus.calc = copy.deepcopy(calc)
+    clus.calc = calc
     with tempfile.TemporaryDirectory() as tmp_dir:
         clus.get_calculator().set(directory=tmp_dir)
     energy = clus.get_potential_energy()
@@ -56,10 +59,18 @@ def minimize_vasp(clus, calc):
 def minimize_al(
     clus, calc, eleNames, al_learner_params, train_config, optimizer, al_method
 ):
-    """The file generated here should go into the dask workerspace"""
+    """
+    Cluster relaxation function that employs using active learning
+    For more information refer: https://github.com/ulissigroup/al_mlp
+    Support provided for both online and offline methods
+    """
 
-    with open("al_relaxationdask.out", "a+") as fh:
-        fh.write(" Cluster  before Al relaxation \n")
+    # Import al run functions
+    from cluster_mlp.online_al import run_onlineal
+    from cluster_mlp.offline_al import run_offlineal
+
+    with open("al_relaxation.out", "a+") as fh:
+        fh.write(" Cluster geometry before Al relaxation \n")
         for atom in clus:
             fh.write(
                 "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
@@ -67,7 +78,7 @@ def minimize_al(
                 )
             )
 
-    clus.calc = copy.deepcopy(calc)
+    clus.calc = calc
     if al_method == "online":
         relaxed_cluster, parent_calls = run_onlineal(
             clus, calc, eleNames, al_learner_params, train_config, optimizer
@@ -79,8 +90,8 @@ def minimize_al(
     else:
         sys.exit("Incorrect values for al_method, please use only offline or online")
 
-    with open("al_relaxationdask.out", "a+") as fh:
-        fh.write(" cluster Geom after Al relaxation \n")
+    with open("al_relaxation.out", "a+") as fh:
+        fh.write(" cluster geometry after Al relaxation \n")
         for atom in relaxed_cluster:
             fh.write(
                 "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
@@ -88,14 +99,13 @@ def minimize_al(
                 )
             )
         fh.write(" \n")
-    """with open("calls.txt", "a+") as f:
-        f.write("Parent Calls for relaxation is {} \n".format(parent_calls))"""  # Not working for now
+
     return relaxed_cluster
 
 
 def fitness_func(individual):
     """
-    Single point energy
+    Obtain the stored energy values in a deap individual object containing a single cluster
     """
     clus = individual[0]
     energy = clus.get_potential_energy()
@@ -118,14 +128,35 @@ def cluster_GA(
     al_method=None,
     al_learner_params=None,
     train_config=None,
-    optimizer=None,
+    optimizer=BFGS,
 ):
     """
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
+
+    nPool : Total number of clusters present in the initial pool
+    eleNames : List of element symbols present in the cluster
+    eleNums : List of the number of atoms of each element present in the cluster
+    eleRadii : List of radii of each element present in the cluster
+    generations : Total number of generations to run the genetic algorithm
+    calc : The calculator used to perform relaxations (must be an ase calculator object)
+    filename : Name of the file to be used to generate ase traj and db files
+    log_file : Name of the log file
+    CXPB : probability of a crossover operation in a given generation
+    singleTypeCluster : Default = False, set to True if only 1 element is present in cluster
+    use_Dask : Default = False, set to True if using dask (Refer examples on using dask)
+    use_vasp : Default = False, set to True if using inbuilt vasp optimizer to run GA code (not supported with active learning)
+    al_method : Default = None, accepts values 'online' or 'offline'
+    al_learner_params : Default = None, refer examples or https://github.com/ulissigroup/al_mlp for sample set up
+    trainer_config : Default = None, refer examples or https://github.com/ulissigroup/al_mlp for sample set up
+    optimizer : Default = BFGS, ase optimizer to be used
     """
 
     def calculate(atoms):
+        """
+        Support function to assign the type of minimization to e performed (pure vasp, using ase optimizer or using active learning)
+        """
         if al_method is not None:
+
             atoms_min = minimize_al(
                 atoms,
                 calc,
@@ -145,7 +176,7 @@ def cluster_GA(
     if al_method is not None:
         al_method = al_method.lower()
 
-    # Creating types
+    # Creating DEAP types
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
@@ -174,24 +205,13 @@ def cluster_GA(
 
     population = toolbox.population(n=nPool)
 
-    # Creating a list of cluster atom objects from pouplation
+    # Creating a list of cluster atom objects from population
     pop_list = []
     for individual in population:
         pop_list.append(individual[0])
-    """PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED"""
-    with open("init_pop_before_relax_positions.out", "a+") as fh:
-        fh.write(" Cluster  before AL relaxation \n")
-        for c in pop_list:
-            for atom in c:
-                fh.write(
-                    "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                        atom.symbol, atom.x, atom.y, atom.z
-                    )
-                )
-            fh.write("\n")
 
     if use_dask == True:
-        # distribute and run the calculations
+        # distribute and run the calculations (requires dask and needs to be set up correctly)
         clus_bag = db.from_sequence(pop_list, partition_size=1)
         clus_bag_computed = clus_bag.map(calculate)
         lst_clus_min = clus_bag_computed.compute()
@@ -201,20 +221,9 @@ def cluster_GA(
 
     for i, p in enumerate(population):
         p[0] = lst_clus_min[i]
+
     # Fitnesses (or Energy) values of the initial random population
     fitnesses = list(map(toolbox.evaluate, population))
-
-    """PLACEHOLDER FOR DEBUGGING REMOVE WHEN CORRECTED"""
-    with open("init_pop_after_relax_positions.out", "a+") as fh:
-        fh.write(" Cluster after AL relaxation \n")
-        for c in population:
-            for atom in c[0]:
-                fh.write(
-                    "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                        atom.symbol, atom.x, atom.y, atom.z
-                    )
-                )
-            fh.write("\n")
 
     with open(log_file, "a+") as fh:
         fh.write("Energies (fitnesses) of the initial pool" "\n")
@@ -254,7 +263,9 @@ def cluster_GA(
             # The child clusters will be checked for bonding and similarity
             # between other child clusters.
             loop_count = 0
-            while loop_count != 200:
+            while (
+                loop_count != 200
+            ):  # Perform 200 possible crossovers or until unique crossovers match pool size
                 clusters = toolbox.select(population, 2, 1)
                 muttype_list.append(mutType)
                 parent1 = copy.deepcopy(clusters[0])
@@ -277,6 +288,7 @@ def cluster_GA(
                         if all(diff_list) == True:
                             cm_pop.append(parent1)
                 loop_count = loop_count + 1
+
                 if len(cm_pop) == nPool:
                     break
 
@@ -350,20 +362,8 @@ def cluster_GA(
         mut_new_lst = []
         for mut in cm_pop:
             mut_new_lst.append(mut[0])
-        """PLACEHOLDER FOR DEBUGGIN REMOVE WHEN CORRECTED"""
-        with open("pop_after_mutations_before_relax_positions.out", "a+") as fh:
-            fh.write("{} {} \n".format("Generation", g))
-            fh.write(" Cluster before AL relaxation \n")
-            for c in population:
-                for atom in c[0]:
-                    fh.write(
-                        "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                            atom.symbol, atom.x, atom.y, atom.z
-                        )
-                    )
-                fh.write("\n")
 
-        # DASK Parallel relaxation of the crossover child/mutatted clusters
+        # DASK Parallel relaxation of the crossover child/mutated clusters
         if use_dask == True:
             mut_bag = db.from_sequence(mut_new_lst, partition_size=1)
             mut_bag_computed = mut_bag.map(calculate)
@@ -372,25 +372,13 @@ def cluster_GA(
         else:
             mut_new_lst_min = list(map(calculate, mut_new_lst))
 
-        for o, mm in enumerate(cm_pop):
-            mm[0] = mut_new_lst_min[o]
+        for i, mm in enumerate(cm_pop):
+            mm[0] = mut_new_lst_min[i]
 
         fitnesses_mut = list(map(toolbox.evaluate, cm_pop))
 
         for ind, fit in zip(cm_pop, fitnesses_mut):
             ind.fitness.values = fit
-        """PLACEHOLDER FOR DEBUGGING"""
-        with open("pop_after_mutations_after_relax_positions.out", "a+") as fh:
-            fh.write("{} {} \n".format("Generation", g))
-            fh.write(" Cluster after AL relaxation \n")
-            for c in population:
-                for atom in c[0]:
-                    fh.write(
-                        "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
-                            atom.symbol, atom.x, atom.y, atom.z
-                        )
-                    )
-                fh.write("\n")
 
         new_population = copy.deepcopy(population)
         # Relaxed clusters will be checked for bonded and similarity with the other
@@ -409,7 +397,10 @@ def cluster_GA(
         fitnesses_pool = list(map(toolbox.evaluate, new_population))
 
         with open(log_file, "a+") as fh:
-            fh.write("Energies (fitnesses) of the present pool" "\n")
+            fh.write(
+                "Energies (fitnesses) of the present pool before best 10 are selected"
+                "\n"
+            )
             for value in fitnesses_pool:
                 fh.write("{} \n".format(value[0]))
 
@@ -419,9 +410,20 @@ def cluster_GA(
 
         best_clus = tools.selWorst(population, 1)[0]
         with open(log_file, "a+") as fh:
-            fh.write("{} {} \n".format("Lowest energy cluster is", best_clus))
-            fh.write("{} {} \n".format("Lowest energy is", best_clus.fitness.values[0]))
+            fh.write(
+                "{} {} \n".format(
+                    "Lowest energy for this generation is", best_clus.fitness.values[0]
+                )
+            )
+            fh.write("\n Best cluster in this generation: \n")
+            for atom in best_clus[0]:
+                fh.write(
+                    "{} {:12.8f} {:12.8f} {:12.8f} \n".format(
+                        atom.symbol, atom.x, atom.y, atom.z
+                    )
+                )
             fh.write("\n")
+
         bi.append(best_clus[0])
         if g == 1:
             writer = TrajectoryWriter(
@@ -446,5 +448,5 @@ def cluster_GA(
                     atom.symbol, atom.x, atom.y, atom.z
                 )
             )
-
+    # Return the list of best clusters in every generations and the overall best cluster
     return bi, best_clus[0]

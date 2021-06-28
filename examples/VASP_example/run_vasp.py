@@ -4,8 +4,12 @@ from ase.data import atomic_numbers, covalent_radii
 from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 
+"""
+Example code to run the genetic algorithm using pure VASP with inbuilt relaxation
+"""
+
 if __name__ == "__main__":
-    use_dask = True
+    cluster_use_dask = True  # Set false if dask is not set up
     eleNames = ["Cu"]
     eleNums = [4]
     nPool = 10
@@ -16,7 +20,7 @@ if __name__ == "__main__":
     log_file = "clus_Cu4.log"
     singleTypeCluster = False
     use_vasp = True
-    use_al = False
+
     calc = Vasp2(
         kpar=1,
         ncore=4,
@@ -41,11 +45,13 @@ if __name__ == "__main__":
         isym=0,
     )
 
-    if use_dask == True:
-        # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
+    if cluster_use_dask == True:
+        # Set up the dask run using the worker-spec file based on the computing cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
+        cluster.scale(10)  # Since 10 clusters in the pool
+
         cluster.scale(10)
 
     bi, final_cluster = cluster_GA(
@@ -59,7 +65,6 @@ if __name__ == "__main__":
         log_file,
         CXPB,
         singleTypeCluster,
-        use_dask,
+        cluster_use_dask,
         use_vasp,
-        use_al,
     )

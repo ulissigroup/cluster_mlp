@@ -5,6 +5,12 @@ from dask_kubernetes import KubeCluster
 from dask.distributed import Client
 from ase.optimize import BFGS
 
+"""
+Example code to run 20 generations of the Genetic algorithm for a Cu3Al5 cluster using the
+pure python ASE EMT calculator
+https://wiki.fysik.dtu.dk/ase/ase/calculators/emt.html
+"""
+
 if __name__ == "__main__":
     use_dask = False
     eleNames = ["Cu", "Al"]
@@ -20,11 +26,11 @@ if __name__ == "__main__":
     use_vasp = False
 
     if use_dask == True:
-        # Run between 0 and 4 1-core/1-gpu workers on the kube cluster
+        # Set up the dask run using the worker-spec file based on the computing cluster
         cluster = KubeCluster.from_yaml("worker-cpu-spec.yml")
         client = Client(cluster)
         # cluster.adapt(minimum=0, maximum=10)
-        cluster.scale(10)
+        cluster.scale(10)  # Since 10 clusters in the pool
 
     bi, final_cluster = cluster_GA(
         nPool,
