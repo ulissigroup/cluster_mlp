@@ -1,5 +1,7 @@
 # cluster-mlp
 
+Install the package with `pip install git+https://github.com/ulissigroup/cluster_mlp.git`
+
 An ASE + DEAP implementation of the genetic algorithm framework presented in the following papers:
 - GIGA: a versatile genetic algorithm for free and supported clusters and nanoparticles in the presence of ligands (Marc Jäger,Rolf Schäfer and  Roy L. Johnston) [https://doi.org/10.1039/C9NR02031D]
 - First principles global optimization of metal clusters and nanoalloys (Marc Jäger,Rolf Schäfer and  Roy L. Johnston) [https://doi.org/10.1080/23746149.2018.1516514]
