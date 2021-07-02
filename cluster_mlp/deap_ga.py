@@ -67,7 +67,7 @@ def minimize_al(
 
     # Import al run functions
     from cluster_mlp.online_al import run_onlineal
-    from cluster_mlp.offline_al import run_offlineal
+    #from cluster_mlp.offline_al import run_offlineal Temporary issues with pytorch/cuda version conflicts
 
     with open("al_relaxation.out", "a+") as fh:
         fh.write(" Cluster geometry before Al relaxation \n")
