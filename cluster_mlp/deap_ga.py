@@ -26,18 +26,19 @@ from ase.optimize import BFGS
 import sys
 
 
-def minimize(clus, calc, optimizer):
+def minimize(clus, calculator, optimizer):
     """
     Cluster relaxation using an ase optimizer
     Refer https://wiki.fysik.dtu.dk/ase/ase/optimize.html for a list of possible optimizers
     Recommended optimizer with VASP is GPMin
     """
-    clus.calc = calc
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        clus.get_calculator().set(directory=tmp_dir)
-    dyn = optimizer(clus, logfile=None)
-    dyn.run(fmax=0.05, steps=1000)
-    energy = clus.get_potential_energy()
+    with calculator as calc:
+        clus.calc = calc
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            clus.get_calculator().set(directory=tmp_dir)
+        dyn = optimizer(clus, logfile=None)
+        dyn.run(fmax=0.05, steps=1000)
+        energy = clus.get_potential_energy()
     clus.set_calculator(sp(atoms=clus, energy=energy))
     return clus
 
