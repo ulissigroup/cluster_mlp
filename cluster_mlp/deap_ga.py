@@ -26,14 +26,22 @@ from ase.optimize import BFGS
 import sys
 
 
-def minimize(clus, calculator, optimizer):
+def minimize(clus, calculator, optimizer,vasp_inter):
     """
     Cluster relaxation using an ase optimizer
     Refer https://wiki.fysik.dtu.dk/ase/ase/optimize.html for a list of possible optimizers
     Recommended optimizer with VASP is GPMin
     """
-    with calculator as calc:
-        clus.calc = calc
+    if vasp_inter == True:
+        with calculator as calc:
+            clus.calc = calculator
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                clus.get_calculator().set(directory=tmp_dir)
+            dyn = optimizer(clus, logfile=None)
+            dyn.run(fmax=0.05, steps=1000)
+            energy = clus.get_potential_energy()
+    else:
+        clus.calc = calculator
         with tempfile.TemporaryDirectory() as tmp_dir:
             clus.get_calculator().set(directory=tmp_dir)
         dyn = optimizer(clus, logfile=None)
@@ -130,6 +138,7 @@ def cluster_GA(
     al_learner_params=None,
     train_config=None,
     optimizer=BFGS,
+    use_vasp_inter = False,
 ):
     """
     DEAP Implementation of the GIGA Geneting Algorithm for nanoclusters
@@ -150,6 +159,7 @@ def cluster_GA(
     al_learner_params : Default = None, refer examples or https://github.com/ulissigroup/al_mlp for sample set up
     trainer_config : Default = None, refer examples or https://github.com/ulissigroup/al_mlp for sample set up
     optimizer : Default = BFGS, ase optimizer to be used
+    use_vasp_inter : Default = False, whether to use vasp interactive mode or not
     """
 
     def calculate(atoms):
@@ -171,7 +181,7 @@ def cluster_GA(
             if use_vasp == True:
                 atoms_min = minimize_vasp(atoms, calc)
             else:
-                atoms_min = minimize(atoms, calc, optimizer)
+                atoms_min = minimize(atoms, calc, optimizer,use_vasp_inter)
         return atoms_min
 
     if al_method is not None:
