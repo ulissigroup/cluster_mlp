@@ -1,10 +1,11 @@
 import numpy as np
 import random as ran
-from ase import Atoms
+from ase import Atoms, neighborlist
 from ase.data import atomic_numbers, covalent_radii
 from ase.build import sort
 from ase.calculators.emt import EMT
 from ase.optimize import BFGS
+from scipy import sparse
 
 
 def write_to_db(database, image):
@@ -142,11 +143,28 @@ def checkBonded(clus):
     """
     Check if every atom of the cluster is bonded to other
     """
+    cutOff = neighborlist.natural_cutoffs(clus, mult=1)
+    neighborList = neighborlist.NeighborList(cutOff, self_interaction=False, bothways=True)
+    neighborList.update(clus)
+    matrix = neighborList.get_connectivity_matrix(sparse=False)
+    n_components, component_list = sparse.csgraph.connected_components(matrix)
+    if n_components == 1:
+        bonded = True
+    else:
+        bonded = False
+    
+    return bonded
+
+
+def checkOverlap(clus):
+    """
+    Support function to check any overlapping atoms
+    """
     natoms = len(clus)
     ele_list = clus.get_chemical_symbols()
     radList = [covalent_radii[atomic_numbers[ele]] for ele in ele_list]
-    bonded = True
-
+    overlap = False
+    
     for i in range(natoms):
         checkList = []
         for j in range(natoms):
@@ -156,13 +174,15 @@ def checkBonded(clus):
                 z = clus.get_positions()[j][2] - clus.get_positions()[i][2]
                 dij = np.sqrt(x ** 2 + y ** 2 + z ** 2)
                 dmin = radList[i] + radList[j]
-                if dij > 1.3 * dmin:
-                    checkList.append(False)
-                else:
+                if dij < 0.8 * dmin:
                     checkList.append(True)
-        if True not in checkList:
-            bonded = False
-    return bonded
+                else:
+                    checkList.append(False)
+
+        if True in checkList:
+            overlap = True
+
+    return overlap
 
 
 def checkSimilar(clus1, clus2):

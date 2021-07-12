@@ -17,7 +17,7 @@ from cluster_mlp.mutations import (
 import copy
 import ase.db
 from ase.calculators.singlepoint import SinglePointCalculator as sp
-from cluster_mlp.utils import write_to_db, checkBonded, checkSimilar
+from cluster_mlp.utils import write_to_db, checkBonded, checkSimilar, checkOverlap
 from ase.io.trajectory import TrajectoryWriter
 import ase
 import dask.bag as db
@@ -397,13 +397,14 @@ def cluster_GA(
         for cm1, cmut1 in enumerate(cm_pop):
             new_diff_list = []
             if checkBonded(cmut1[0]) == True:
-                for c2, cluster1 in enumerate(population):
-                    diff = checkSimilar(cluster1[0], cmut1[0])
-                    new_diff_list.append(diff)
-                if all(new_diff_list) == True:
-                    new_population.append(cmut1)
-                else:
-                    pass
+                if checkOverlap(cmut1[0]) == False:
+                    for c2, cluster1 in enumerate(population):
+                        diff = checkSimilar(cluster1[0], cmut1[0])
+                        new_diff_list.append(diff)
+                    if all(new_diff_list) == True:
+                        new_population.append(cmut1)
+                    else:
+                        pass
 
         fitnesses_pool = list(map(toolbox.evaluate, new_population))
 
