@@ -38,7 +38,8 @@ def minimize(clus, calculator, optimizer,vasp_inter):
             with tempfile.TemporaryDirectory() as tmp_dir:
                 clus.get_calculator().set(directory=tmp_dir)
             dyn = optimizer(clus, logfile=None)
-            dyn.run(fmax=0.05, steps=1000)
+            dyn.attach(replay_trajectory, 1, calculator.calc, dyn)
+            dyn.run(fmax=0.05, steps=2000)
             energy = clus.get_potential_energy()
     else:
         clus.calc = calculator

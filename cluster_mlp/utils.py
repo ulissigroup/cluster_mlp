@@ -152,7 +152,6 @@ def checkBonded(clus):
         bonded = True
     else:
         bonded = False
-    
     return bonded
 
 
@@ -181,7 +180,6 @@ def checkOverlap(clus):
 
         if True in checkList:
             overlap = True
-
     return overlap
 
 

@@ -1,6 +1,6 @@
 from al_mlp.online_learner.online_learner import OnlineLearner
 from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
-from al_mlp.atomistic_methods import Relaxation
+from al_mlp.atomistic_methods import Relaxation, replay_trajectory
 import os
 
 # Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
