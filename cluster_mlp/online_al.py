@@ -27,7 +27,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
         cluster.calc = onlinecalc
         dyn = BFGS(cluster, trajectory = 'relaxing.traj')
         dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
-        dyn.run(fmax=0.01, steps=100)
+        dyn.run(fmax=0.05, steps=1000)
 
     #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
     #optim_struc.run(onlinecalc, filename="relaxing")
