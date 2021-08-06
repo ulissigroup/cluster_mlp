@@ -14,18 +14,23 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    onlinecalc = OnlineLearner(
-        al_learner_params,
-        images,
-        ml_potential,
-        parent_calc,
-    )
+    with parent_calc as calc:
+        onlinecalc = OnlineLearner(
+            al_learner_params,
+            images,
+            ml_potential,
+            calc,
+            )
 
-    if os.path.exists("relaxing.traj"):
-        os.remove("relaxing.traj")
+        if os.path.exists("relaxing.traj"):
+            os.remove("relaxing.traj")
+        cluster.calc = onlinecalc
+        dyn = BFGS(cluster, trajectory = 'relaxing.traj')
+        dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+        dyn.run(fmax=0.01, steps=100)
 
-    optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
-    optim_struc.run(onlinecalc, filename="relaxing")
-    relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
+    #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
+    #optim_struc.run(onlinecalc, filename="relaxing")
+        relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
 
     return relaxed_clus, onlinecalc.parent_calls
