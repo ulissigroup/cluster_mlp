@@ -236,13 +236,24 @@ def cluster_GA(
     # Fitnesses (or Energy) values of the initial random population
     fitnesses = list(map(toolbox.evaluate, population))
 
-    with open(log_file, "a+") as fh:
-        fh.write("Energies (fitnesses) of the initial pool" "\n")
-        for value in fitnesses:
-            fh.write("{} \n".format(value[0]))
 
     for ind, fit in zip(population, fitnesses):
         ind.fitness.values = fit
+
+    #Removing bad geometries     
+    population_filter = []
+    for i, p in enumerate(population):
+        if checkBonded(p[0]) == True:
+            if checkOverlap(p[0]) == False:
+                population_filter.append(p)      
+    population  = copy.deepcopy(population_filter)
+    
+    fitnesses_init_pool = list(map(toolbox.evaluate, population))
+    with open(log_file, "a+") as fh:
+        fh.write("Energies (fitnesses) of the initial pool" "\n")
+        for value in fitnesses_init_pool:
+            fh.write("{} \n".format(value[0]))
+
 
     # Evolution of the Genetic Algorithm
     with open(log_file, "a+") as fh:
@@ -417,7 +428,11 @@ def cluster_GA(
                 fh.write("{} \n".format(value[0]))
 
         # Selecting the lowest energy npool clusters from the new_population
-        best_n_clus = tools.selWorst(new_population, nPool)
+        len_new_pop = len(new_population)
+        if len_new_pop > nPool: 
+            best_n_clus = tools.selWorst(new_population, nPool)
+        else:
+            best_n_clus = new_population
         population = best_n_clus
 
         best_clus = tools.selWorst(population, 1)[0]
