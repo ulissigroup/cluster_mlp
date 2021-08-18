@@ -14,13 +14,21 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    with parent_calc as calc:
+    if isinstance(calc, vasp):
         onlinecalc = OnlineLearner(
             al_learner_params,
             images,
             ml_potential,
             calc,
             )
+    elif isinstance(calc, VaspInteractive):
+        with parent_calc as calc:
+            onlinecalc = OnlineLearner(
+                al_learner_params,
+                images,
+                ml_potential,
+                calc,
+                )
 
         if os.path.exists("relaxing.traj"):
             os.remove("relaxing.traj")
