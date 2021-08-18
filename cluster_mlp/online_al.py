@@ -2,7 +2,7 @@ from al_mlp.online_learner.online_learner import OnlineLearner
 from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
 from al_mlp.atomistic_methods import Relaxation, replay_trajectory
 import os
-
+from ase.optimize import *
 # Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
 
 
@@ -25,7 +25,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
         if os.path.exists("relaxing.traj"):
             os.remove("relaxing.traj")
         cluster.calc = onlinecalc
-        dyn = BFGS(cluster, trajectory = 'relaxing.traj')
+        dyn = optimizer(cluster, trajectory = 'relaxing.traj')
         dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
         dyn.run(fmax=0.05, steps=1000)
 
