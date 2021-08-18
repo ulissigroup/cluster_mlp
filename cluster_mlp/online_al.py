@@ -21,6 +21,13 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
             ml_potential,
             calc,
             )
+        if os.path.exists("relaxing.traj"):
+            os.remove("relaxing.traj")
+        cluster.calc = onlinecalc
+        dyn = optimizer(cluster, trajectory = 'relaxing.traj')
+        dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+        dyn.run(fmax=0.05, steps=1000) 
+
     elif isinstance(calc, VaspInteractive):
         with parent_calc as calc:
             onlinecalc = OnlineLearner(
@@ -30,12 +37,12 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
                 calc,
                 )
 
-        if os.path.exists("relaxing.traj"):
-            os.remove("relaxing.traj")
-        cluster.calc = onlinecalc
-        dyn = optimizer(cluster, trajectory = 'relaxing.traj')
-        dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
-        dyn.run(fmax=0.05, steps=1000)
+            if os.path.exists("relaxing.traj"):
+                os.remove("relaxing.traj")
+            cluster.calc = onlinecalc
+            dyn = optimizer(cluster, trajectory = 'relaxing.traj')
+            dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+            dyn.run(fmax=0.05, steps=1000)
 
     #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
     #optim_struc.run(onlinecalc, filename="relaxing")
