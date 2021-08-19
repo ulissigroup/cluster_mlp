@@ -14,7 +14,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    if isinstance(calc, vasp):
+    if isinstance(parent_calc, vasp):
         onlinecalc = OnlineLearner(
             al_learner_params,
             images,
@@ -28,7 +28,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
         dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
         dyn.run(fmax=0.05, steps=1000) 
 
-    elif isinstance(calc, VaspInteractive):
+    elif isinstance(parent_calc, VaspInteractive):
         with parent_calc as calc:
             onlinecalc = OnlineLearner(
                 al_learner_params,
@@ -46,6 +46,6 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
     #optim_struc.run(onlinecalc, filename="relaxing")
-        relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
+    relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
 
     return relaxed_clus, onlinecalc.parent_calls
