@@ -3,8 +3,10 @@ from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
 from al_mlp.atomistic_methods import Relaxation, replay_trajectory
 import os
 from ase.optimize import *
-# Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
+from ase.calculators.vasp import Vasp
+from vasp_interactive import VaspInteractive
 
+# Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
 
 def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
 
@@ -14,7 +16,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    if isinstance(parent_calc, vasp):
+    if isinstance(parent_calc, Vasp):
         onlinecalc = OnlineLearner(
             al_learner_params,
             images,
