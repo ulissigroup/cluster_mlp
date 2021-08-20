@@ -4,19 +4,27 @@ metadata:
 spec:
   restartPolicy: Never
   containers:
-  - image: ulissigroup/kubeflow_vasp:amptorch
+  - image: ulissigroup/kubeflow_vasp:clusterga
     imagePullPolicy: Always
-    args: [dask-worker, --nthreads, '1', --no-dashboard, --memory-limit, 4GB, --death-timeout, '60']
+    command:
+    - tini
+    - -g
+    - --
+    - /bin/bash
+    - -c
+    args:
+    - pip install git+https://github.com/ulissigroup/cluster_mlp.git && 
+      dask-worker --nthreads '1' --no-dashboard --memory-limit 32GB --death-timeout '60'
     name: dask
     env:
     - name: ASE_VASP_COMMAND
-      value: "mpirun -np 8 --mca btl_vader_single_copy_mechanism none /opt/vasp.6.1.2_pgi_mkl/bin/vasp_gam"
+      value: "mpirun -np 8 --map-by hwthread --mca btl_vader_single_copy_mechanism none /opt/vasp.6.1.2_pgi_mkl/bin/vasp_gam"
     resources:
       limits:
         cpu: "8"
-        memory: 4G
+        memory: 32G
       requests:
-        cpu: "4"
-        memory: 4G
+        cpu: "8"
+        memory: 32G
   imagePullSecrets:
   - name: ulissigroup-dockerhub
