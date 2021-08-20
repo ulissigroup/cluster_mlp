@@ -21,7 +21,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
             al_learner_params,
             images,
             ml_potential,
-            calc,
+            parent_calc,
             )
         if os.path.exists("relaxing.traj"):
             os.remove("relaxing.traj")
