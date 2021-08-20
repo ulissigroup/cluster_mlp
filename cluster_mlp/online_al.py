@@ -5,7 +5,7 @@ import os
 from ase.optimize import *
 from ase.calculators.vasp import Vasp
 from vasp_interactive import VaspInteractive
-
+from ase.io.trajectory import Trajectory
 # Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
 
 def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, optimizer):
@@ -48,6 +48,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
     #optim_struc.run(onlinecalc, filename="relaxing")
-    relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
+    #relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
+    relaxed_clus = Trajectory('relaxing.traj')[-1]
 
     return relaxed_clus, onlinecalc.parent_calls
