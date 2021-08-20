@@ -29,8 +29,8 @@ if __name__ == "__main__":
         gamma=True,  # Gamma-centered
         ismear=1,
         sigma=0.2,
-        ibrion=-1,
-        nsw=0,
+        #ibrion=-1,
+        #nsw=0,
         #potim=0.2,
         isif=0,
         # ediffg=-0.02,
