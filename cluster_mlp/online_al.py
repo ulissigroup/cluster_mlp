@@ -16,7 +16,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    if isinstance(parent_calc, Vasp):
+    if type(parent_calc) == Vasp:
         onlinecalc = OnlineLearner(
             al_learner_params,
             images,
@@ -30,7 +30,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
         dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
         dyn.run(fmax=0.05, steps=1000) 
 
-    elif isinstance(parent_calc, VaspInteractive):
+    elif type(parent_calc) == VaspInteractive:
         with parent_calc as calc:
             onlinecalc = OnlineLearner(
                 al_learner_params,
