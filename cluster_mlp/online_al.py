@@ -1,6 +1,6 @@
 from al_mlp.online_learner.online_learner import OnlineLearner
 from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
-from al_mlp.atomistic_methods import Relaxation, replay_trajectory
+from al_mlp.atomistic_methods import Relaxation, replay_trajectory, check_final_point
 import os
 from ase.optimize import *
 from ase.calculators.vasp import Vasp
@@ -28,6 +28,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
         cluster.calc = onlinecalc
         dyn = optimizer(cluster, trajectory = 'relaxing.traj')
         dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+        dyn.attach(check_final_point, 1, cluster.calc, dyn)
         dyn.run(fmax=0.05, steps=1000) 
 
     elif type(parent_calc) == VaspInteractive:
@@ -44,6 +45,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
             cluster.calc = onlinecalc
             dyn = optimizer(cluster, trajectory = 'relaxing.traj')
             dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+            dyn.attach(check_final_point, 1, cluster.calc, dyn)
             dyn.run(fmax=0.05, steps=1000)
 
     #optim_struc = Relaxation(cluster, optimizer, fmax=0.01, steps=100)
