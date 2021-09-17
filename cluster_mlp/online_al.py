@@ -4,6 +4,7 @@ from al_mlp.atomistic_methods import Relaxation, replay_trajectory, check_final_
 import os
 from ase.optimize import *
 from ase.calculators.vasp import Vasp
+from ase.calculators.emt import EMT
 from vasp_interactive import VaspInteractive
 from ase.io.trajectory import Trajectory
 # Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
@@ -16,7 +17,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
 
     ml_potential = FlarePPCalc(flare_params, images)
 
-    if type(parent_calc) == Vasp:
+    if ((type(parent_calc) == Vasp) or (type(parent_calc == EMT))):
         onlinecalc = OnlineLearner(
             al_learner_params,
             images,

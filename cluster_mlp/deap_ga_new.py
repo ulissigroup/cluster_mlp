@@ -236,16 +236,23 @@ def cluster_GA(
 
     else:
         lst_clus_min  = list(map(calculate, pop_list))
-        print('lst_clus_min, parent_calls, dataset_parent')
-        print(lst_clus_min )
-        for i in range(len(lst_clus_min)):
-            print(lst_clus_min[i][0])
-            print(lst_clus_min[i][1])
-            print(lst_clus_min[i][2])
+        #print('lst_clus_min, parent_calls, dataset_parent')
+        #print(lst_clus_min )
+        #for i in range(len(lst_clus_min)):
+            #print(lst_clus_min[i][0])
+            #print(lst_clus_min[i][1])
+            #print(lst_clus_min[i][2])
 
     for i, p in enumerate(population):
         p[0] = lst_clus_min[i][0]
-
+    
+    init_pop_list_after_relax = []
+    for individual in population:
+        init_pop_list_after_relax.append(individual[0])
+    write('init_pop_after_relax.traj', init_pop_list_after_relax)
+    with open(log_file, "a+") as fh:
+        fh.write(f'Total clusters in the intital pool after relaxationi: {len(population)}'"\n")
+        
         
     #parent_calls list if online learner
     parent_calls_initial_pool = []
@@ -253,16 +260,25 @@ def cluster_GA(
     for i in range(len(lst_clus_min)):
         parent_calls_initial_pool.append(lst_clus_min[i][1])
         parent_data_initial_pool.append(lst_clus_min[i][2])
-    print(parent_calls_initial_pool)
-    print(parent_data_initial_pool)
+    #print(parent_calls_initial_pool)
+    #print(parent_data_initial_pool)
 
     parent_data_initial_pool_flatten = [item for sublist in parent_data_initial_pool for item in sublist]
-    print(len(parent_data_initial_pool_flatten))
+    #print(len(parent_data_initial_pool_flatten))
     
-    dataset_parent = copy.deepcopy(parent_data_initial_pool_flatten)
+    dataset_parent = parent_data_initial_pool_flatten[len(dataset_parent) : ]
+    print('length of dataset_parent after initial pool relaxation')
     print(len(dataset_parent))
-    print(dataset_parent)
+    #print(dataset_parent)
+    print('parent calls after initial pool relaxation')
     print(parent_calls_initial_pool)
+    print('Total parent calls after initial pool relaxation')
+    print(sum(parent_calls_initial_pool))
+    with open(log_file, "a+") as fh:
+        fh.write(f'length of dataset_parent after initial pool relaxation: {len(dataset_parent)}' '\n')
+        fh.write(f'parent calls after initial pool relaxation: {parent_calls_initial_pool}' '\n')
+        fh.write(f'Total parent calls after initial pool relaxation: {sum(parent_calls_initial_pool)}' '\n')
+    
 
     # Fitnesses (or Energy) values of the initial random population
     fitnesses = list(map(toolbox.evaluate, population))
@@ -277,6 +293,13 @@ def cluster_GA(
             if checkOverlap(p[0]) == False:
                 population_filter.append(p)      
     population  = copy.deepcopy(population_filter)
+    
+    init_pop_list_after_filter = []
+    for individual in population:
+        init_pop_list_after_filter.append(individual[0])
+    write('init_pop_after_filter.traj', init_pop_list_after_filter)
+    with open(log_file, "a+") as fh:
+        fh.write(f'Total clusters in the intital pool after filtering: {len(population)}'"\n")
     
     fitnesses_init_pool = list(map(toolbox.evaluate, population))
     with open(log_file, "a+") as fh:
@@ -415,6 +438,7 @@ def cluster_GA(
         mut_new_lst = []
         for mut in cm_pop:
             mut_new_lst.append(mut[0])
+        write('mut_before_relax_gen'+str(g)+'.traj', mut_new_lst)
 
         # DASK Parallel relaxation of the crossover child/mutated clusters
         if use_dask == True:
@@ -424,33 +448,73 @@ def cluster_GA(
 
         else:
             mut_new_lst_min = list(map(calculate, mut_new_lst))
-            print('mut_new_lst_min, parent_calls, dataset_parent')
-            print(mut_new_lst_min )
-            for i in range(len(mut_new_lst_min)):
-                print(mut_new_lst_min[i][0])
-                print(mut_new_lst_min[i][1])
-                print(mut_new_lst_min[i][2])
+            #print('mut_new_lst_min, parent_calls, dataset_parent')
+            #print(mut_new_lst_min )
+            #for i in range(len(mut_new_lst_min)):
+                #print(mut_new_lst_min[i][0])
+                #print(mut_new_lst_min[i][1])
+                #print(mut_new_lst_min[i][2])
 
         for i, mm in enumerate(cm_pop):
             mm[0] = mut_new_lst_min[i][0]
+        
+        
+        mut_list_after_relax = []
+        for individual in cm_pop:
+            mut_list_after_relax.append(individual[0])
+        write('mut_after_relax_gen'+str(g)+'.traj', mut_list_after_relax)
+        with open(log_file, "a+") as fh:
+            fh.write(f'Total clusters relaxed in  Generation {g}: {len(cm_pop)}'"\n")
 
         #parent calls list if online learner
         parent_calls_mut_list = []
         parent_data_mut_list = []
+        parent_data_mut_gen_images = []
         for i in range(len(mut_new_lst_min)):
+            print(i)
             parent_calls_mut_list.append(mut_new_lst_min[i][1])
-            parent_data_mut_list.append(mut_new_lst_min[i][2])
-        parent_data_mut_list_flatten = [item for sublist in parent_data_mut_list for item in sublist]
+            parent_data_mut_list = mut_new_lst_min[i][2]
+            #parent_data_mut_list_gen_list = parent_data_mut_list[len(dataset_parent] : ]
+            #print('parent_data_mut_list')
+            #print(parent_data_mut_list)
+            print('len(parent_data_mut_list)')
+            print(len(parent_data_mut_list))
+            parent_data_mut_gen_images.append(parent_data_mut_list[len(dataset_parent) : ])
+            print('len(parent_data_mut_gen_images)')
+            #print(parent_data_mut_gen_images)
+            print(len(parent_data_mut_gen_images))
+            print('len(dataset_parent')
+            print(len(dataset_parent))
+            print('\n')
+        parent_data_mut_gen_images_flatten = [item for sublist in parent_data_mut_gen_images for item in sublist]
         
-        print('len(parent_data_mut_list_flatten)')
-        print(len(parent_data_mut_list_flatten))
+        print('len(parent_data_mut_gen_images_flatten)')
+        print(len(parent_data_mut_gen_images_flatten))
         print('len of dataset parent before appending)')
-        print(len(dataset_parent))
-        dataset_parent.extend(parent_data_mut_list_flatten)
+        initial_total_images_dataset_parent = len(dataset_parent)
+        print(initial_total_images_dataset_parent)
+        
+        dataset_parent.extend(parent_data_mut_gen_images_flatten)
 
         print('len of dataset parent after appending)')
         #print(dataset_parent)
         print(len(dataset_parent))
+        print('parent calls list after relaxation in generations)')
+        print(parent_calls_mut_list)
+        parent_calls_mut_list_updated_gen = [ (number - initial_total_images_dataset_parent) for number in parent_calls_mut_list]
+        print('parent calls list specific to this  generations')
+        print(parent_calls_mut_list_updated_gen)
+        
+
+        with open(log_file, "a+") as fh:
+            fh.write(f'Initial Total images in the parent dataset: {initial_total_images_dataset_parent}' '\n')
+            fh.write(f'Parent calls list after relaxtions in generations: {parent_calls_mut_list} ' '\n')
+            fh.write(f'Parent calls  list specific to this  generations in each relaxation: {parent_calls_mut_list_updated_gen} ' '\n')
+            fh.write(f'Total Parent calls  specific to this  generations: {len(parent_data_mut_gen_images_flatten)} ' '\n')
+            fh.write(f'Total Parent calls  specific to this  generations: {sum(parent_calls_mut_list_updated_gen)} ' '\n')
+            fh.write(f'Final Total images in the parent dataset: {len(dataset_parent)}' '\n')
+        
+         
 
         fitnesses_mut = list(map(toolbox.evaluate, cm_pop))
 
@@ -471,6 +535,16 @@ def cluster_GA(
                         new_population.append(cmut1)
                     else:
                         pass
+        
+        mut_list_after_filter = []
+        for individual in new_population:
+            mut_list_after_filter.append(individual[0])
+        write('mut_after_filter_gen'+str(g)+'.traj', mut_list_after_filter)
+        with open(log_file, "a+") as fh:
+            fh.write(f'Total clusters flitered out in  Generation {g}: {len(cm_pop) + len(population) - len(new_population)}'"\n")
+            fh.write(f'Total clusters in the pool after filtering in Generation {g}: {len(new_population)}'"\n")
+
+
 
         fitnesses_pool = list(map(toolbox.evaluate, new_population))
 

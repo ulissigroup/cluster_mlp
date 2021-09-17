@@ -11,17 +11,14 @@ from ase.io.trajectory import Trajectory
 
 def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, dataset_parent, optimizer):
 
-    if len(dataset_parent) == 0:
-        dataset_parent = [cluster]
+    # if len(dataset_parent) == 0:
+    #     dataset_parent = []
     #images = [cluster]
-    print('\n')
-    print('\n')
-    print('\n')
     print('run_onlineal dataset_parent length:', len(dataset_parent))
 
     flare_params = config
 
-    ml_potential = FlarePPCalc(flare_params, dataset_parent)
+    ml_potential = FlarePPCalc(flare_params, [cluster])
     #print("parent_calc",  parent_calc)
     #if(type(parent_calc == EMT)):
         #print("True")
@@ -62,5 +59,4 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, data
     #optim_struc.run(onlinecalc, filename="relaxing")
     #relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
     relaxed_clus = Trajectory('relaxing.traj')[-1]
-
     return relaxed_clus, onlinecalc.parent_calls, onlinecalc.parent_dataset
