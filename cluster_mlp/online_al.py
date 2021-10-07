@@ -28,7 +28,7 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, opti
             os.remove("relaxing.traj")
         cluster.calc = onlinecalc
         dyn = optimizer(cluster, trajectory = 'relaxing.traj')
-        #dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
+        dyn.attach(replay_trajectory, 1, cluster.calc, dyn)
         dyn.attach(check_final_point, 1, cluster.calc, dyn)
         dyn.run(fmax=0.05, steps=1000) 
 
