@@ -2,7 +2,7 @@ import numpy as np
 from ase import Atoms
 from ase.data import atomic_numbers, covalent_radii
 import random as ran
-from cluster_mlp.utils import CoM, get_data, fixOverlap, addAtoms, sortR0
+from cluster_mlp.utils import CoM, get_data, fixOverlap, addAtoms, sortR0,sortProj
 
 
 def homotop(parent):
@@ -294,17 +294,20 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
     clus2 = parent2
     while compositionWrong:
         if surfGA == False:
-            angle = ran.randint(1, 180)
-            axis = ran.choice(["x", "y", "z"])
-            clus1.rotate(angle, axis, center="COM")
-            clus1 = fixOverlap(clus1)
-            clus2.rotate(angle, axis, center="COM")
-            clus2 = fixOverlap(clus2)
+            phi = ran.uniform(0,2*np.pi)
+            psi = ran.uniform(0,np.pi)
+            vx = np.cos(phi) * np.sin(psi)
+            vy = np.sin(phi) * np.sin(psi)
+            vz = np.cos(psi)
+            vec = [vx,vy,vz] 
+
+        clus1 = sortProj(clus1,vec)
+        clus2 = sortProj(clus2,vec)
 
         child = []
         eleNames, eleNums, natoms, _, _ = get_data(clus1)
-        cut = np.abs(int(natoms * (fit1 / (fit1 + fit2))))
-
+        cmax = fit1/(fit1 + fit2)
+        cut = np.abs(int(natoms * ran.uniform(0.5,cmax)))
         if cut == 0:
             cut = 1
         elif cut == natoms:
@@ -317,7 +320,6 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
 
         for j in range(cut, len(clus2)):
             child.append(clus2[j])
-
         CheckEle = []
         for ele in eleNames:
             eleCount = 0
@@ -333,7 +335,7 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
     for i in range(1, len(child)):
         c = Atoms(child[i].symbol, positions=[child[i].position])
         final_child += c
-
+    
     final_child = fixOverlap(final_child)
     parent1 = final_child
     parent2 = parent2
