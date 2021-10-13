@@ -223,3 +223,23 @@ def sortR0(clus, R0):
     coord_xyz = [(w[i][2], w[i][3], w[i][4]) for i in range(natoms)]
     clus = Atoms(ele, coord_xyz)
     return clus
+
+def sortProj(clus, vec):
+    """
+    Sort the atom list according to their projection into arbitrary vector
+    """
+    v = np.array(vec)
+    w = []
+    natoms = len(clus)
+    for atom in clus:
+        ele = atom.symbol
+        x, y, z = atom.position
+        r = np.array([x,y,z])
+        proj = np.dot(r,v)
+        w.append([proj, ele, x, y, z])
+
+    w.sort()
+    ele = [w[i][1] for i in range(natoms)]
+    coord_xyz = [(w[i][2], w[i][3], w[i][4]) for i in range(natoms)]
+    clus = Atoms(ele, coord_xyz)
+    return clus
