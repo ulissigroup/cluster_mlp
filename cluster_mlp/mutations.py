@@ -337,6 +337,8 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
         final_child += c
     
     final_child = fixOverlap(final_child)
+    print('Child', final_child)
+    print( final_child.get_positions())
     parent1 = final_child
     parent2 = parent2
     return [parent1, parent2]
