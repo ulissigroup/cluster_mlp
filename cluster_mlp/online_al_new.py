@@ -59,9 +59,9 @@ def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, data
     #optim_struc.run(onlinecalc, filename="relaxing")
     #relaxed_clus = optim_struc.get_trajectory("relaxing")[-1]
     relaxed_clus = Trajectory('relaxing.traj')[-1]
-    print('al relaxed clus'
-    print( relaxed_clus)
-    print( relaxed_clus.get_positions())
+    print('al relaxed clus')
+    print(relaxed_clus)
+    print(relaxed_clus.get_positions())
     print('\n')
     print('\n')
     return relaxed_clus, onlinecalc.parent_calls, onlinecalc.parent_dataset
