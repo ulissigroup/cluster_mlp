@@ -292,6 +292,9 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
     compositionWrong = True
     clus1 = parent1
     clus2 = parent2
+    print('CrossOver')
+    print('clus1')
+    print(clus1.get_positions())
     while compositionWrong:
         if surfGA == False:
             phi = ran.uniform(0,2*np.pi)
