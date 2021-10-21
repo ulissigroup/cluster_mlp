@@ -295,6 +295,8 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
     print('CrossOver')
     print('clus1')
     print(clus1.get_positions())
+    print('clus2')
+    print(clus2.get_positions())
     while compositionWrong:
         if surfGA == False:
             phi = ran.uniform(0,2*np.pi)
@@ -311,6 +313,7 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
         eleNames, eleNums, natoms, _, _ = get_data(clus1)
         cmax = fit1/(fit1 + fit2)
         cut = np.abs(int(natoms * ran.uniform(0.5,cmax)))
+        print('cut', cut)
         if cut == 0:
             cut = 1
         elif cut == natoms:
