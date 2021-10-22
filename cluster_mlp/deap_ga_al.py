@@ -335,7 +335,8 @@ def cluster_GA(
                 (f1,) = fit1
                 fit2 = clusters[1].fitness.values
                 (f2,) = fit2
-                toolbox.mate(parent1[0], parent2[0], f1, f2)
+                child_clus = toolbox.mate(parent1[0], parent2[0], f1, f2)
+                parent1[0] = child_clus
 
                 diff_list = []
                 if checkBonded(parent1[0]) == True:
