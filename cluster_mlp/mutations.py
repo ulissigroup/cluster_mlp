@@ -348,6 +348,6 @@ def mate(parent1, parent2, fit1, fit2, surfGA=False):
     print('Child after fix', final_child)
     print( final_child.get_positions())
     print( '\n')
-    parent1 = final_child
-    parent2 = parent2
-    return [parent1, parent2]
+    #parent1 = final_child
+    #parent2 = parent2
+    return final_child
