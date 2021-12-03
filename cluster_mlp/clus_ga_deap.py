@@ -25,6 +25,7 @@ import dask.bag as db
 import tempfile
 from ase.optimize import BFGS
 import sys
+import os
 import subprocess
 
 
@@ -329,9 +330,11 @@ def cluster_GA(
         #parent_calls list if online learner
         total_parent_calls = []
         bi = []
-        old_final_pop_db = "final_pop_{}.db".format(filename)
+        
+        old_final_pop_db = "./final_pop_{}.db".format(filename)
         copy_final_pop_db = "final_pop_{}_{}.db".format(filename,gen_num)
-        subprocess.call( ['mv', old_final_pop_db, 'old_'+copy_final_pop_db ] )
+        if os.path.exists(old_final_pop_db):
+            subprocess.call( ['mv', old_final_pop_db, 'old_'+copy_final_pop_db ] )
 
     ##### Evolution of Generations ######
 
