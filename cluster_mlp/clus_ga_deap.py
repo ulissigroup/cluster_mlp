@@ -184,6 +184,7 @@ def cluster_GA(
                 al_method,
             )
         else:
+            parent_calls = 0
             if use_vasp == True:
                 atoms_min = minimize_vasp(atoms, calc)
             else:
