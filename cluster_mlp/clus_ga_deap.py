@@ -269,8 +269,6 @@ def cluster_GA(
         for ind, fit in zip(population, fitnesses):
             ind.fitness.values = fit
         
-        population = tools.selWorst(population,  len(population))   
-    
         #Removing bad geometries     
         population_filter = []
         for i, p in enumerate(population):
@@ -278,7 +276,10 @@ def cluster_GA(
                 if checkOverlap(p[0]) == False:
                     population_filter.append(p)      
         population  = copy.deepcopy(population_filter)
-    
+
+   
+        population = tools.selWorst(population,  len(population))   
+ 
         init_pop_list_after_filter = []
         for individual in population:
             init_pop_list_after_filter.append(individual[0])
