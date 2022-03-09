@@ -268,7 +268,9 @@ def cluster_GA(
 
         for ind, fit in zip(population, fitnesses):
             ind.fitness.values = fit
-
+        
+        population = tools.selWorst(population,  len(population))   
+    
         #Removing bad geometries     
         population_filter = []
         for i, p in enumerate(population):
