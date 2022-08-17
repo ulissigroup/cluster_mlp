@@ -1,13 +1,13 @@
-from al_mlp.online_learner.online_learner import OnlineLearner
-from al_mlp.ml_potentials.flare_pp_calc import FlarePPCalc
-from al_mlp.atomistic_methods import Relaxation, mixed_replay, check_final_point
+from finetuna.online_learner.online_learner import OnlineLearner
+from finetuna.ml_potentials.flare_pp_calc import FlarePPCalc
+from finetuna.atomistic_methods import Relaxation, mixed_replay, check_final_point
 import os
 from ase.optimize import *
 from ase.calculators.vasp import Vasp
 from ase.calculators.emt import EMT
 from vasp_interactive import VaspInteractive
 from ase.io.trajectory import Trajectory
-# Refer examples or https://github.com/ulissigroup/al_mlp for sample parameters
+# Refer examples or https://github.com/ulissigroup/finetuna for sample parameters
 
 def run_onlineal(cluster, parent_calc, elements, al_learner_params, config, dataset_parent, optimizer):
 
