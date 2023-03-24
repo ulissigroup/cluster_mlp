@@ -1,0 +1,75 @@
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: znewcross-cu4au4new
+  namespace: rajesh444
+spec:
+  template:
+    spec:
+      containers:
+      - env:
+        - name: NB_PREFIX
+          value: /notebook/rajesh444/nanoclusters
+        name: nanoclusters
+        image: ulissigroup/kubeflow_vasp:clusterga
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 16
+            memory: 24Gi
+            nvidia.com/gpu: "0"
+          requests:
+            cpu: 16
+            memory: 24Gi
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: workspace-rajesh444
+        - mountPath: /home/jovyan/shared-datasets/
+          name: shared-datasets
+        - mountPath: /home/jovyan/shared-scratch/
+          name: shared-scratch
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-jq6qb
+          readOnly: true
+        command:
+        - /bin/bash
+        - -c
+        args:
+        - python run_vasp_online.py
+        workingDir: /home/jovyan/GACluster/Vasp_Online/NewCrossOver/Alloy-Cu4Au4
+      restartPolicy: Never
+      serviceAccountName: default-editor
+      volumes:
+      - name: workspace-rajesh444
+        persistentVolumeClaim:
+          claimName: workspace-rajesh444
+      - name: shared-datasets
+        persistentVolumeClaim:
+          claimName: shared-datasets
+      - name: shared-scratch
+        persistentVolumeClaim:
+          claimName: shared-scratch
+      - emptyDir:
+          medium: Memory
+        name: dshm
+      - name: kube-api-access-jq6qb
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              expirationSeconds: 3607
+              path: token
+          - configMap:
+              items:
+              - key: ca.crt
+                path: ca.crt
+              name: kube-root-ca.crt
+          - downwardAPI:
+              items:
+              - fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+                path: namespace
