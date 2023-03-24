@@ -1,5 +1,18 @@
 # cluster-mlp
 
+## Installation with conda
+
+```
+conda activate base
+conda install -c conda-forge mamba
+# This will create a conda environment cluster-ga
+mamba env create --file conda_env.yml
+conda activate cluster-ga
+# Run quick test
+python run_emt_online_fixed.py
+```
+
+
 Install the package with `pip install git+https://github.com/ulissigroup/cluster_mlp.git`
 
 An ASE + DEAP implementation of the genetic algorithm framework presented in the following papers:
