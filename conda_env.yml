@@ -1,0 +1,47 @@
+name: cluster-ga
+channels:
+  - pytorch
+  - conda-forge
+  - pyg
+  - defaults
+
+dependencies:
+  - python=3.9.*
+  - numpy==1.20
+  - numba
+  - openblas
+  - scalapack
+  - jupyter
+  - cmake
+  - mkl
+  - mkl-include
+  - nbconvert
+  - ipykernel
+  - ase==3.21
+  - scipy
+  - dask
+  - dask-kubernetes
+  - deap
+  - pyg=2.1.0
+  - pytorch=1.11.0
+  - pip
+  - pre-commit
+  - pyg=2.1.0
+  - pymatgen=2020.12.31
+  - pytest
+  - python-lmdb
+  - pyyaml
+  - setuptools=59.5.0
+  - sphinx
+  - submitit
+  - tensorboard
+  - tqdm
+  - wandb
+  - compilers
+  - pip:
+    - git+https://github.com/Open-Catalyst-Project/ocp.git
+    - git+https://github.com/ulissigroup/finetuna.git@866f6e5f782db8cef70d4109e30420e11ee8469d
+    - git+https://github.com/ulissigroup/cluster_mlp.git
+    - git+https://github.com/ulissigroup/vasp-interactive.git
+    - mir_flare==0.2.4
+    - git+https://github.com/mir-group/flare_pp.git@6aeb1dc84a574e5e0db8a2fedff89624e9ffbb19
