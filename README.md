@@ -3,8 +3,12 @@
 ## Installation with conda
 
 ```
+# Ignore first 2 steps if you have mamba already installed
 conda activate base
 conda install -c conda-forge mamba
+
+git clone --recursive https://github.com/ulissigroup/cluster_mlp.git
+cd cluster_mlp
 # This will create a conda environment cluster-ga
 mamba env create --file conda_env.yml
 conda activate cluster-ga
