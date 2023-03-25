@@ -39,8 +39,8 @@ dependencies:
   - wandb
   - compilers
   - pip:
-    - git+https://github.com/Open-Catalyst-Project/ocp.git
-    - git+https://github.com/ulissigroup/finetuna.git@866f6e5f782db8cef70d4109e30420e11ee8469d
+    - -e ./ocp
+    - -e ./finetuna
     - git+https://github.com/ulissigroup/cluster_mlp.git
     - git+https://github.com/ulissigroup/vasp-interactive.git
     - mir_flare==0.2.4

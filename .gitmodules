@@ -1,0 +1,6 @@
+[submodule "ocp"]
+	path = ocp
+	url = https://github.com/Open-Catalyst-Project/ocp.git
+[submodule "finetuna"]
+	path = finetuna
+	url = https://github.com/ulissigroup/finetuna.git
