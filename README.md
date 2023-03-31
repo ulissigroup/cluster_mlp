@@ -13,7 +13,9 @@ cd cluster_mlp
 mamba env create --file conda_env.yml
 conda activate cluster-ga
 # Run quick test
-python run_emt_online_fixed.py
+python run_emt_online.py
+#Example run file for vasp is provided run_vasp_online.py
+
 ```
 
 

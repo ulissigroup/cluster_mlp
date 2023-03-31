@@ -10,10 +10,10 @@ from ase.calculators.vasp import Vasp
 
 if __name__ == "__main__":
     use_dask = True #Launch Dask
-    eleNames = [ "Pd"] #element list in the cluster
-    eleNums = [16] #element composition
+    eleNames = [ "Ni"] #element list in the cluster
+    eleNums = [10] #element composition
     nPool = 10 #number of clusters in the initial pool (population)
-    generations = 3 # number of generations
+    generations = 25 # number of generations
     CXPB = 0.5 #cross-over probability; 1-CXPB is the mutation probability 
     use_vasp = True # use vasp for VASP DFT calculations
     use_vasp_inter = False # vasp_interative, not recommended

@@ -6,45 +6,23 @@ from dask.distributed import Client
 import torch
 from ase.optimize import BFGS
 from ase.calculators.emt import EMT
-from ase.calculators.vasp import Vasp
+#from ase.calculators.vasp import Vasp
 
 if __name__ == "__main__":
-    use_dask = True #Launch Dask
-    eleNames = [ "Pd"] #element list in the cluster
-    eleNums = [16] #element composition
+    use_dask = False #Launch Dask
+    eleNames = [ "Cu"] #element list in the cluster
+    eleNums = [18] #element composition
     nPool = 10 #number of clusters in the initial pool (population)
     generations = 3 # number of generations
     CXPB = 0.5 #cross-over probability; 1-CXPB is the mutation probability 
-    use_vasp = True # use vasp for VASP DFT calculations
+    use_vasp = False # use vasp for VASP DFT calculations
     use_vasp_inter = False # vasp_interative, not recommended
     al_method = "Online" # active learning (AL-GA), if you want DFT-GA, use al_method = None
     optimizer = BFGS
     restart = False # if you want to restart from a generation use True, otherwise False
     gen_num = 16 #if restart=True, give the generation number to restart
+    calc = EMT()# ASE calculator, we have tested EMT() and VASP.
     
-    #ASE calculator, we have tested EMT() and VASP.
-    calc = Vasp(
-        kpar=1,
-        ncore=8,
-        encut=400,
-        xc="PBE",
-        kpts=(1, 1, 1),
-        gamma=True,  # Gamma-centered
-        ismear=1,
-        sigma=0.2,
-        ibrion=-1,
-        nsw=0,
-        #potim=0.2,
-        isif=0,
-        # ediffg=-0.02,
-        # ediff=1e-6,
-        lcharg=False,
-        lwave=False,
-        lreal=False,
-        ispin=2,
-        isym=0,
-    )
-
     eleRadii = [covalent_radii[atomic_numbers[ele]] for ele in eleNames]
     comp_list = [ eleNames[i]+str(eleNums[i])  for i in range(len(eleNames))]
     filename='clus_'+''.join(comp_list)# For saving the best cluster at every generation
