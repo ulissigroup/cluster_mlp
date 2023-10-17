@@ -17,6 +17,7 @@ python run_emt_online.py
 #Example run file for vasp is provided run_vasp_online.py
 
 ```
+![TOC_Final_Ver3](https://github.com/ulissigroup/cluster_mlp/assets/40799655/3c2a3c12-825a-4b80-a7df-703b73f3add6)
 
 
 Install the package with `pip install git+https://github.com/ulissigroup/cluster_mlp.git`
