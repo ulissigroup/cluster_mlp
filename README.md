@@ -34,7 +34,6 @@ Required dependancies:
 If you find this work useful in your research, please cite the following paper: 
    
    
-    Raju, Rajesh K. and Sivakumar, Saurabh and Wang, Xiaoxiao and Ulissi, Zachary W. Cluster-MLP: An Active Learning Genetic Algorithm Framework for Accelerated Discovery of Global Minimum Configurations of Pure and Alloyed Nanoclusters, 62, 2023, 6192-6197
     @article{doi:10.1021/acs.jcim.3c01431,
     author = {Raju, Rajesh K. and Sivakumar, Saurabh and Wang, Xiaoxiao and Ulissi, Zachary W.},
     title = {Cluster-MLP: An Active Learning Genetic Algorithm Framework for Accelerated Discovery of Global Minimum Configurations of Pure and Alloyed Nanoclusters},
