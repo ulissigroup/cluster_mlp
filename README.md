@@ -30,3 +30,33 @@ An ASE + DEAP implementation of the genetic algorithm framework presented in the
 Required dependancies:
 - Atomic Simulation Environment(ASE) [https://wiki.fysik.dtu.dk/ase/about.html]
 - Distributed Evolutionary algorithms in Python(DEAP) [https://deap.readthedocs.io/en/master/index.html]
+
+If you find this work useful in your research, please cite:
+@article{doi:10.1021/acs.jcim.3c01431,
+author = {Raju, Rajesh K. and Sivakumar, Saurabh and Wang, Xiaoxiao and Ulissi, Zachary W.},
+title = {Cluster-MLP: An Active Learning Genetic Algorithm Framework for Accelerated Discovery of Global Minimum Configurations of Pure and Alloyed Nanoclusters},
+journal = {Journal of Chemical Information and Modeling},
+volume = {63},
+number = {20},
+pages = {6192-6197},
+year = {2023},
+doi = {10.1021/acs.jcim.3c01431},
+    note ={PMID: 37824704},
+
+URL = { 
+    
+        https://doi.org/10.1021/acs.jcim.3c01431
+    
+    
+
+},
+eprint = { 
+    
+        https://doi.org/10.1021/acs.jcim.3c01431
+    
+    
+
+}
+
+}
+
